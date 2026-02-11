@@ -1,0 +1,4 @@
+__pycache__
+.vscode
+gameconfig.ini
+serverconfig.ini
