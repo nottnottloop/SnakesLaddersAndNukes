@@ -23,6 +23,7 @@ except socket.error as e:
     str(e)
 
 s.listen()
+print(f"Hosting server on {server}:{port}")
 print("Waiting for a connection, Server Started")
 
 # connected = set()
