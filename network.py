@@ -8,7 +8,7 @@ class Network:
         self.create_socket()
 
     def create_socket(self):
-        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.client = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
         config.read('gameconfig.ini')
         self.server = config['Server']['ip']
         self.port = int(config['Server']['port'])
