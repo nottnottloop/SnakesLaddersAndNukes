@@ -7,9 +7,7 @@ The game progressively gets more dystopic and scary as more nukes are used, beca
 
 Before playing, copy the `gameconfig.ini` from the `serverconfigs` directory to the root directory, and change the config IP address accordingly (IPV6). 
 
-After that to play, you can either:
-1. Run the precompiled client.exe on Windows
-2. Run client.py using python3 from command line `python3 .\client.py`
+After that to play run client.py using python3 from command line `python3 client.py` or `py client.py` on Windows
 
 Windows will think client.exe is a trojan, there's not much that can be done because of how 'compiling' python files to exe files works. If you're scared just use the second method with python3, install python from the website and make sure adding python to the PATH variable is checked when you install it. 
 
