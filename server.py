@@ -11,11 +11,11 @@ config.read('serverconfig.ini')
 server = config['Server']['ip']
 port = int(config['Server']['port'])
 
-# server = "192.168.1.79"
+# server = "::"
 # port = 5555
 
 # socket.setdefaulttimeout(1)
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
 
 try:
     s.bind((server, port))
@@ -23,7 +23,7 @@ except socket.error as e:
     str(e)
 
 s.listen()
-print(f"Hosting server on {server}:{port}")
+print(f"Hosting server on {server} on {port}")
 print("Waiting for a connection, Server Started")
 
 # connected = set()
