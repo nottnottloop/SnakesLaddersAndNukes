@@ -4,29 +4,23 @@ import pickle
 import game
 import debug
 import configparser
-import sys
 config = configparser.ConfigParser()
 
 config.read('serverconfig.ini')
-server = config['Server']['ip']
+host = config['Server']['host']
 port = int(config['Server']['port'])
 
-# server = "::"
-# port = 5555
-
-# socket.setdefaulttimeout(1)
-s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 try:
-    s.bind((server, port))
+    s.bind((host, port))
 except socket.error as e:
     str(e)
 
 s.listen()
-print(f"Hosting server on {server} on {port}")
+print(f"Hosting server on {host} on {port}")
 print("Waiting for a connection, Server Started")
 
-# connected = set()
 games = {}
 game_id = 0
 total_id_count = 0

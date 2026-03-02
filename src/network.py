@@ -8,13 +8,13 @@ class Network:
         self.create_socket()
 
     def create_socket(self):
-        self.client = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         config.read('gameconfig.ini')
-        self.server = config['Server']['ip']
+        self.host = config['Server']['host']
         self.port = int(config['Server']['port'])
-        # self.server = "192.168.1.79"
+        # self.host = "192.168.1.79"
         # self.port = 5555
-        self.addr = (self.server, self.port)
+        self.addr = (self.host, self.port)
         self.p = -1
 
     def get_p(self):
