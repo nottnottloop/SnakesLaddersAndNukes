@@ -1,5 +1,4 @@
 import pygame
-import os
 from pathlib import Path
 
 pygame.init()

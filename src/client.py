@@ -2,13 +2,10 @@ import pygame
 import random
 import sys
 import network
-import load_assets as a
+
+import assets as a
 import debug
-import gc
-# this import statement is actually needed if you want to run turn the client into an exe ;)
-import game
-# game = game.Game()
-# color constants
+
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)

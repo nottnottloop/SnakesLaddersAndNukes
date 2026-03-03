@@ -12,8 +12,6 @@ class Network:
         config.read('gameconfig.ini')
         self.host = config['Server']['host']
         self.port = int(config['Server']['port'])
-        # self.host = "192.168.1.79"
-        # self.port = 5555
         self.addr = (self.host, self.port)
         self.p = -1
 
