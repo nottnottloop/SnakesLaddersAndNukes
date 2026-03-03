@@ -1,6 +1,8 @@
 import pygame
-pygame.init()
+import os
 from pathlib import Path
+
+pygame.init()
 
 base_dir = Path("assets")
 img_dir = base_dir / "img"
@@ -25,7 +27,7 @@ TITLE3 = load(ui_dir / "title3.png")
 
 UNMUTED = load(ui_dir / "unmuted.png")
 UNMUTED = pygame.transform.scale(UNMUTED, (70, 70))
-MUTED = load(ui_dir / "title3.png")
+MUTED = load(ui_dir / "muted.png")
 MUTED = pygame.transform.scale(MUTED, (70, 70))
 
 NUCLEARICON = load(ui_dir / "nukeinactive.png")

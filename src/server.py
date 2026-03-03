@@ -4,6 +4,7 @@ import pickle
 import game
 import debug
 import configparser
+import sys
 config = configparser.ConfigParser()
 
 config.read('serverconfig.ini')
@@ -16,8 +17,9 @@ try:
     s.bind((host, port))
 except socket.error as e:
     str(e)
-
 s.listen()
+s.settimeout(1.0)
+
 print(f"Hosting server on {host} on {port}")
 print("Waiting for a connection, Server Started")
 
@@ -27,6 +29,13 @@ total_id_count = 0
 p = 0
 game_found = False
 
+def start_new_threaded_client(player_id, unique_game_id):
+    conn.send(str.encode(str(player_id)))
+    games[unique_game_id].new_player(player_id, id_count=total_id_count, debug=debug.debug)
+    print(f"{addr[0]} is player {p} with ID {total_id_count} joining game {unique_game_id}")
+    new_thread = threading.Thread(target=threaded_client, args=(conn, p, unique_game_id, total_id_count, addr), daemon=True)
+    new_thread.start()
+
 def threaded_client(conn, p, local_game_id, id_count, addr):
     global total_id_count
 
@@ -34,7 +43,7 @@ def threaded_client(conn, p, local_game_id, id_count, addr):
     game = games[local_game_id]
     while True:
         try:
-            data = conn.recv(8192).decode()
+            data = conn.recv(4096).decode()
 
             if local_game_id in games:
                 game = games[local_game_id]
@@ -88,48 +97,36 @@ def start_new_game(game_id):
     games[game_id] = game.Game(game_id)
     print("Creating game ID", game_id)
 
-# def set_new_game_id(new_game_id):
-#     global game_id
-#     game_id = new_game_id
-
-def start_new_threaded_client(p, unique_game_id):
-    conn.send(str.encode(str(p)))
-    games[unique_game_id].new_player(p, id_count=total_id_count, debug=debug.debug)
-    print(addr[0], "is player", p, "with ID", total_id_count, "joining game", unique_game_id)
-    new_thread = threading.Thread(target=threaded_client, args=(conn, p, unique_game_id, total_id_count, addr), daemon=True)
-    new_thread.start()
-
-# game_closer_daemon = threading.Thread(target=close_game_if_empty, daemon=True)
-# game_closer_daemon.start()
 while True:
-    conn, addr = s.accept()
-    print("Connected to:", addr)
+    try:
+        conn, addr = s.accept()
+        print("Connected to:", addr)
 
-    total_id_count += 1
+        total_id_count += 1
 
-    # if game_id == None:
-    #     game_id = 0
-    #     start_new_game(game_id)
-
-    if games:
-        for id in games:
-            if games[id].started:
-                continue
-            if not game_found:
-                # if not games[id].started:
-                #     if games[id].num_of_players < 4:
-                if games[id].num_of_players < 4:
-                        for potential_player in range(1, 5):
-                            if games[id].players[potential_player][5]:
-                                p = potential_player
-                                game_found = True
-                                start_new_threaded_client(p, id)
-                                break
-            else:
-                break
-    if not game_found:
-        p = 1
-        start_new_game(game_id)
-        start_new_threaded_client(p, game_id)
-        game_id += 1
-    game_found = False
+        if games:
+            for id in games:
+                if games[id].started:
+                    continue
+                if not game_found:
+                    if games[id].num_of_players < 4:
+                            for potential_player in range(1, 5):
+                                if games[id].players[potential_player][5]:
+                                    p = potential_player
+                                    game_found = True
+                                    start_new_threaded_client(p, id)
+                                    break
+                else:
+                    break
+        if not game_found:
+            p = 1
+            start_new_game(game_id)
+            start_new_threaded_client(p, game_id)
+            game_id += 1
+        game_found = False
+    except socket.timeout:
+        continue
+    except KeyboardInterrupt:
+        print("Server shutting down")
+        s.close()
+        sys.exit()
