@@ -29,10 +29,10 @@ UNMUTED = pygame.transform.scale(UNMUTED, (70, 70))
 MUTED = load(ui_dir / "muted.png")
 MUTED = pygame.transform.scale(MUTED, (70, 70))
 
-NUCLEARICON = load(ui_dir / "nukeinactive.png")
-NUCLEARICON = pygame.transform.scale(NUCLEARICON, (70, 70))
-NUCLEARICONTRANSPARENT = load(ui_dir / "nukeactive.png")
-NUCLEARICONTRANSPARENT = pygame.transform.scale(NUCLEARICONTRANSPARENT, (70, 70))
+NUKEINACTIVE = load(ui_dir / "nukeinactive.png")
+NUKEINACTIVE = pygame.transform.scale(NUKEINACTIVE, (70, 70))
+NUKEACTIVE = load(ui_dir / "nukeactive.png")
+NUKEACTIVE = pygame.transform.scale(NUKEACTIVE, (70, 70))
 
 # board
 BOARD1 = load(board_dir / "board1.png")

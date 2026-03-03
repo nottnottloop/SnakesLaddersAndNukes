@@ -378,9 +378,9 @@ def draw_nukes():
 
 def draw_nuke_buttons(p):
     if game.players[p][2] == 0:
-        WIN.blit(a.NUCLEARICONTRANSPARENT, NUKE_ICON_LOCATION)
+        WIN.blit(a.NUKEINACTIVE, NUKE_ICON_LOCATION)
     else:
-        WIN.blit(a.NUCLEARICON, NUKE_ICON_LOCATION)
+        WIN.blit(a.NUKEACTIVE, NUKE_ICON_LOCATION)
         if game.degraded_nuke_text == 0:
             font = pygame.font.SysFont("consolas", 120)
             text = font.render(str(game.players[p][2]), True, RED)
