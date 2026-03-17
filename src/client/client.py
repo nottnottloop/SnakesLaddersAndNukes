@@ -52,29 +52,28 @@ def init_vars():
 
 explosion_group = pygame.sprite.Group()
 
-SELECT_COLOR_BUTTONS = (
-    Button(window, client_state, 'Red', 375, 175, 200, 200, RED, RED, sound=assets.click),
-    Button(window, client_state, 'Green', 375, 375, 200, 200, GREEN, GREEN, sound=assets.click),
-    Button(window, client_state, 'Blue', 175, 175, 200, 200, BLUE, BLUE, sound=assets.click),
-    Button(window, client_state, 'Yellow', 175, 375, 200, 200, YELLOW, YELLOW, sound=assets.click),
-)
 
 MUTE_BUTTON_LOCATION = (600, 590)
-MUTE_BUTTON = (Button(window, client_state, 'Mute', MUTE_BUTTON_LOCATION[0], MUTE_BUTTON_LOCATION[1], 100, 100, WHITE, WHITE, sound=assets.click),)
-UNMUTE_BUTTON = (Button(window, client_state, 'Unmute', MUTE_BUTTON_LOCATION[0], MUTE_BUTTON_LOCATION[1], 100, 100, WHITE, WHITE, sound=assets.click),)
-
-START_GAME_BUTTON = (Button(window, client_state, 'Start Game', 420, 450, 275, 110, BLACK, WHITE, sound=assets.click),)
-
-READY_UP_BUTTON = (Button(window, client_state, 'Ready Up', 225, 450, 300, 150, BLACK, WHITE, sound=assets.click),)
-
-DICE_BUTTON = (Button(window, client_state, 'roll', 550, 625, 100, 100, BLACK, WHITE, border_radius=100, sound=assets.dice),)
-
-NUKE_BUTTON = (Button(window, client_state, 'NUKE', 295, 615, 130, 130, RED, WHITE, border_radius=50, sound=assets.click),)
-
-BUTTONS = SELECT_COLOR_BUTTONS + READY_UP_BUTTON + DICE_BUTTON + NUKE_BUTTON
-
 NUKE_ICON_LOCATION = (15, 635)
 MOVE_TURN_ICON_LOCATION = (5, 5)
+
+ui_buttons = {
+    "mute_button": Button(window, client_state, 'Mute', MUTE_BUTTON_LOCATION[0], MUTE_BUTTON_LOCATION[1], 100, 100, WHITE, WHITE, sound=assets.click),
+    "unmute_button": Button(window, client_state, 'Unmute', MUTE_BUTTON_LOCATION[0], MUTE_BUTTON_LOCATION[1], 100, 100, WHITE, WHITE, sound=assets.click),
+    "start_game_button": Button(window, client_state, 'Start Game', 420, 450, 275, 110, BLACK, WHITE, sound=assets.click),
+    "ready_up_button": Button(window, client_state, 'Ready Up', 225, 450, 300, 150, BLACK, WHITE, sound=assets.click),
+    "dice_button": Button(window, client_state, 'roll', 550, 625, 100, 100, BLACK, WHITE, border_radius=100, sound=assets.dice),
+    "nuke_button": Button(window, client_state, 'NUKE', 295, 615, 130, 130, RED, WHITE, border_radius=50, sound=assets.click),
+}
+
+select_color_buttons = {
+    "red": Button(window, client_state, 'Red', 375, 175, 200, 200, RED, RED, sound=assets.click),
+    "green": Button(window, client_state, 'Green', 375, 375, 200, 200, GREEN, GREEN, sound=assets.click),
+    "blue": Button(window, client_state, 'Blue', 175, 175, 200, 200, BLUE, BLUE, sound=assets.click),
+    "yellow": Button(window, client_state, 'Yellow', 175, 375, 200, 200, YELLOW, YELLOW, sound=assets.click),
+}
+
+buttons = ui_buttons | select_color_buttons
 
 def check_and_display_waiting_for_players(game, p):
     # checks if color selection has been made. if it has been made, display waiting for players
@@ -95,10 +94,10 @@ def check_and_display_waiting_for_players(game, p):
             blit_centered_text(window, text, -50)
         if game.num_of_players >= 2:
             if game.players[p][3] == True:
-                READY_UP_BUTTON[0].disable()
+                buttons["ready_up_button"].disable()
             else:
-                READY_UP_BUTTON[0].draw()
-                READY_UP_BUTTON[0].enable()
+                buttons["ready_up_button"].draw()
+                buttons["ready_up_button"].enable()
 
 
 def check_and_ask_for_color(game, p):
@@ -106,16 +105,15 @@ def check_and_ask_for_color(game, p):
         font = pygame.font.SysFont("consolas", 50)
         text = font.render("Choose your colour!", True, BLACK)
         blit_centered_text(window, text, -300)
-        for btn in SELECT_COLOR_BUTTONS:
+        for btn in select_color_buttons.values():
             if btn.text in game.blocked_colors:
                 btn.disable()
             else:
                 btn.draw()
                 btn.enable()
     else:
-        for btn in SELECT_COLOR_BUTTONS:
+        for btn in select_color_buttons.values():
             btn.disable()
-
 
     # nudge each of the player tokens to prevent overlapping
 def calculate_offset_nudge(player):
@@ -267,8 +265,6 @@ def draw_snakes_and_ladders():
                          (117 + (game.ladders[ladder][0][0] * 51) - 17, 517 - (game.ladders[ladder][0][1] * 51) - 240))
 
 def draw_nukes():
-    # window.blit(assets.NUCLEARBOMB,
-    #          (117 + (game.ladders[ladder][0][0] * 51) - 17, 517 - (game.ladders[ladder][0][1] * 51) - 240))
     for nuke in (range(len(nuke_cache))):
         window.blit(assets.NUCLEARBOMB,
                  (125 + (nuke_cache[nuke][0] * 51), 522 - (nuke_cache[nuke][1] * 51)))
@@ -286,14 +282,14 @@ def draw_nuke_buttons(p):
             font = pygame.font.SysFont("impact", 120)
             text = font.render(str(game.players[p][2]), True, RED)
             window.blit(text, (90, 600))
-        NUKE_BUTTON[0].draw()
+        buttons["nuke_button"].draw()
 
 def draw_dice(p):
     if game.player_to_move == p:
-        DICE_BUTTON[0].enable()
+        buttons["dice_button"].enable()
     else:
-        DICE_BUTTON[0].disable()
-    DICE_BUTTON[0].draw()
+        buttons["dice_button"].disable()
+    buttons["dice_button"].draw()
     if game.dice_degraded == 0:
         window.blit(assets.DICE[game.dice_pips], (550, 625))
     else:
@@ -327,7 +323,6 @@ def draw_winner_window(p, game):
     font = pygame.font.SysFont("consolas", 70, bold=True)
     text = font.render("ERROR", True, parse_color(game.players[game.winner][1]))
     if game.winner == p:
-        #, parse_color(game.players[game.winner][1])
         if game.num_nukes_used == 0:
             text = font.render("YOU WON! :D", True, parse_color(game.players[game.winner][1]))
             if client_state.client_state.sound_enabled:
@@ -352,16 +347,6 @@ def draw_winner_window(p, game):
             if client_state.music_degraded == 0:
                 pygame.mixer.music.stop()
     blit_centered_text(window, text, y_offset=-325)
-    # else:
-    #     font = pygame.font.SysFont("consolas", 25)
-    #     if game.winner == p:
-    #         # text = font.render("You" + m.winner_message, True, WHITE)
-    #     else:
-    #         # text = font.render(game.players[game.winner][1] + m.winner_message, True,
-    #         #                    parse_color(game.players[game.winner][1]))
-    #     blit_centered_text(text, y_offset=-30)
-    #     text = font.render(m.winner_message_2, True, WHITE)
-    #     blit_centered_text(text, y_offset=30)
 
 def draw_game_objects(game=None, p=None, player_position_cache=None):
     # a box on the board is 46x47 pixels at 750x750 resolution
@@ -373,7 +358,7 @@ def draw_game_objects(game=None, p=None, player_position_cache=None):
     #         x_offset = 9 - x_offset
     #     return y_offset, x_offset
     if game.started:
-        READY_UP_BUTTON[0].disable()
+        buttons["ready_up_button"].disable()
     draw_board(game)
     draw_dice(p)
     draw_nuke_buttons(p)
@@ -383,14 +368,6 @@ def draw_game_objects(game=None, p=None, player_position_cache=None):
     draw_game_pieces(game, p)
     explosion_group.draw(window)
     explosion_group.update()
-    # if game.winner != 0:
-    #     draw_winner_window(p)
-
-    # pygame.draw.rect(window, BLACK, (122,522,46,47))
-    # pygame.draw.rect(window, BLACK, (173,522,46,47))
-    # pygame.draw.rect(window, BLACK, (122,471,46,47))
-    # DEBUG CODE
-    # redraw_window(white = False)
 
 def draw_bg(game=None):
     if game == None or game.discoloration == 0:
@@ -418,9 +395,6 @@ def redraw_window(game=None, p=None, white=True, update=True):
         check_and_display_waiting_for_players(game, p)
     if update:
         pygame.display.update()
-    # DEBUG CODE
-    # pygame.time.delay(5999)
-
 
 def connect():
     redraw_window()
@@ -492,13 +466,13 @@ def main(p):
                 pos = pygame.mouse.get_pos()
                 if game.started:
                     if game.players[p][2] > 0:
-                        NUKE_BUTTON[0].enable()
+                        buttons["nuke_button"].enable()
                     else:
-                        NUKE_BUTTON[0].disable()
+                        buttons["nuke_button"].disable()
                 else:
-                    DICE_BUTTON[0].disable()
-                    NUKE_BUTTON[0].disable()
-                for btn in BUTTONS:
+                    buttons["dice_button"].disable()
+                    buttons["nuke_button"].disable()
+                for btn in buttons.values():
                     if btn.click(pos):
                         game = network.send(btn.text)
                         print("Clicked:", btn.text)
@@ -628,14 +602,14 @@ def menu_screen():
     while run:
         clock.tick(60)
         window.blit(assets.TITLE3, (0, 0))
-        START_GAME_BUTTON[0].draw()
-        START_GAME_BUTTON[0].enable()
+        buttons["start_game_button"].draw()
+        buttons["start_game_button"].enable()
         if client_state.sound_enabled:
             window.blit(assets.UNMUTED, MUTE_BUTTON_LOCATION)
-            MUTE_BUTTON[0].enable()
+            buttons["mute_button"].enable()
         else:
             window.blit(assets.MUTED, MUTE_BUTTON_LOCATION)
-            UNMUTE_BUTTON[0].enable()
+            buttons["unmute_button"].enable()
         explosion_group.draw(window)
         explosion_group.update()
         pygame.display.update()
@@ -645,9 +619,12 @@ def menu_screen():
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONUP:
                 pos = pygame.mouse.get_pos()
-                if START_GAME_BUTTON[0].click(pos):
+                if buttons["start_game_button"].click(pos):
+                    buttons["mute_button"].enabled = False
+                    buttons["unmute_button"].enabled = False
+                    buttons["start_game_button"].enabled = False
                     run = False
-                if MUTE_BUTTON[0].click(pos) or UNMUTE_BUTTON[0].click(pos):
+                if buttons["mute_button"].click(pos) or buttons["unmute_button"].click(pos):
                     client_state.sound_enabled = not client_state.sound_enabled
                 explosion_easter_egg_counter += 1
                 if explosion_easter_egg_counter > 10:
