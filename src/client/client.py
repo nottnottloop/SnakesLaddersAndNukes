@@ -4,6 +4,7 @@ import sys
 
 from . import load_assets as assets
 from .button import Button
+from .explosion import Explosion
 from .utils import *
 from .constants import *
 from .networking import Network
@@ -24,7 +25,6 @@ blit_centered_text(window, text)
 pygame.display.update()
 
 network = Network()
-
 clock = pygame.time.Clock()
 
 def init_vars():
@@ -50,42 +50,7 @@ def init_vars():
     shake_amount = 0
     shake_direction = True
 
-class Explosion(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        pygame.sprite.Sprite.__init__(self)
-        self.images = assets.EXPLOSION_IMAGES
-        self.index = 0
-        self.image = self.images[self.index]
-        self.rect = pygame.Rect(0, 0, 950, 950)
-        self.rect.center = [WIDTH/2, HEIGHT/2]
-        self.counter = 0
-
-    def update(self):
-        explosion_speed = 15
-        #update explosion animation
-        self.counter += 1
-
-        if self.counter >= explosion_speed and self.index < len(self.images) - 1:
-            self.counter = 0
-            self.index += 1
-            self.image = self.images[self.index]
-
-        #if the animation is complete, reset animation index
-        if self.index >= len(self.images) - 1 and self.counter >= explosion_speed:
-            self.kill()
-
 explosion_group = pygame.sprite.Group()
-
-
-def parse_color(color):
-    if color == "Red":
-        return RED
-    if color == "Green":
-        return GREEN
-    if color == "Blue":
-        return BLUE
-    if color == "Yellow":
-        return YELLOW
 
 SELECT_COLOR_BUTTONS = (
     Button(window, client_state, 'Red', 375, 175, 200, 200, RED, RED, sound=assets.click),
@@ -110,7 +75,6 @@ BUTTONS = SELECT_COLOR_BUTTONS + READY_UP_BUTTON + DICE_BUTTON + NUKE_BUTTON
 
 NUKE_ICON_LOCATION = (15, 635)
 MOVE_TURN_ICON_LOCATION = (5, 5)
-
 
 def check_and_display_waiting_for_players(game, p):
     # checks if color selection has been made. if it has been made, display waiting for players
@@ -654,7 +618,6 @@ def check_if_player_moving(game):
 def menu_screen():
     global nukes_cached, shake_amount, shake_direction
     init_vars()
-    explosion_group.empty()
     run = True
     if client_state.music_degraded == 0 and client_state.sound_enabled:
         pygame.mixer.music.stop()

@@ -30,6 +30,7 @@ class Button:
         x1 = pos[0]
         y1 = pos[1]
         if self.x <= x1 <= self.x + self.width and self.y <= y1 <= self.y + self.height and self.enabled:
+            self.callback()
             if self.client_state.sound_enabled:
                 self.sound.play()
             return True
