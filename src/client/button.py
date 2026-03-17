@@ -3,7 +3,7 @@ from .constants import *
 from .utils import ClientState
 
 class Button:
-    def __init__(self, window, state: ClientState, text, x, y, width, height, color, text_color=BLACK, enabled=True, border_radius=-1, click_sound=True, sound=None, image=None, callback=lambda *args, **kwargs: None):
+    def __init__(self, window, state: ClientState, text, x, y, width, height, color, text_color=BLACK, enabled=True, border_radius=-1, sound=None, image=None, callback=lambda *args, **kwargs: None):
         self.window = window
         self.state = state
         self.text = text
@@ -15,7 +15,6 @@ class Button:
         self.text_color = text_color
         self.enabled = enabled
         self.border_radius = border_radius
-        self.click_sound = click_sound
         self.sound = sound
         self.image = image
         self.callback = callback
@@ -35,14 +34,8 @@ class Button:
         y1 = pos[1]
         if self.x <= x1 <= self.x + self.width and self.y <= y1 <= self.y + self.height and self.enabled:
             self.callback()
-            if self.state.sound_enabled:
+            if self.sound and self.state.sound_enabled:
                 self.sound.play()
             return True
         else:
             return False
-
-    def enable(self):
-        self.enabled = True
-
-    def disable(self):
-        self.enabled = False

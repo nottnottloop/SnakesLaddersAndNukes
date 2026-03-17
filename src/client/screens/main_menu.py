@@ -6,15 +6,13 @@ from ..utils import *
 from ..constants import *
 from ...shared.game import Game
 
-MUTE_BUTTON_LOCATION = {"x": 600, "y": 590}
-
 class MenuScreen(ScreenStateInterface):
     def __init__(self, window: pygame.surface.Surface, state: Game):
         self.window = window
         self.state = state
         self.explosion_easter_egg_counter = 0
         self.buttons = {
-            "mute_button": Button(window, state, 'Mute', MUTE_BUTTON_LOCATION["x"], MUTE_BUTTON_LOCATION["y"], 100, 100, WHITE, WHITE, sound=assets.click, image=assets.UNMUTED),
+            "mute_button": Button(window, state, 'Mute', 600, 590, 100, 100, WHITE, WHITE, image=assets.UNMUTED),
             "start_game_button": Button(window, state, 'Start Game', 420, 450, 275, 110, BLACK, WHITE, sound=assets.click),
         }
 
@@ -26,6 +24,7 @@ class MenuScreen(ScreenStateInterface):
             if self.buttons["mute_button"].click(pos):
                 self.state.sound_enabled = not self.state.sound_enabled
                 if self.state.sound_enabled:
+                    assets.click.play()
                     self.buttons["mute_button"].image = assets.UNMUTED
                 else:
                     self.buttons["mute_button"].image = assets.MUTED
