@@ -3,47 +3,29 @@ import random
 import sys
 import network
 
-import assets as a
+import assets
 import debug
-
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-RED = (255, 0, 0)
-GREEN = (0, 255, 0)
-BLUE = (0, 0, 255)
-# pure yellow hurts everyone's eyes
-YELLOW = (252, 226, 5)
+from constants import *
+from button import Button
+from client_utils import *
 
 pygame.font.init()
-pygame.display.set_icon(a.ICON)
+pygame.display.set_icon(assets.ICON)
 
-WIDTH = 750
-HEIGHT = 750
-WIN = pygame.display.set_mode((WIDTH, HEIGHT))
+window = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Snakes, Ladders and Nukes")
 
-music_degraded = 0
+client_state = ClientState()
 
-sound_enabled = True
-
-def blit_centered_text(text, y_offset=0):
-    WIN.blit(text, (WIDTH / 2 - text.get_width() / 2, HEIGHT / 2 - text.get_height() / 2 + y_offset))
-
-WIN.fill(WHITE)
+window.fill(WHITE)
 font = pygame.font.SysFont("consolas", 60)
 text = font.render("LOADING", True, BLACK)
-blit_centered_text(text)
+blit_centered_text(window, text)
 pygame.display.update()
-
 
 n = network.Network()
 
 clock = pygame.time.Clock()
-
-
-SQUARE_SIZE = 51
-BOARD_START_X = 117
-BOARD_START_Y = 517
 
 def init_vars():
     global players_moving, player_movement_started, player_position_cache, nuke_cache, ticks_passed, nukes_cached, distance_x, distance_y, shake_amount, shake_direction
@@ -71,7 +53,7 @@ def init_vars():
 class Explosion(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
-        self.images = a.EXPLOSION_IMAGES
+        self.images = assets.EXPLOSION_IMAGES
         self.index = 0
         self.image = self.images[self.index]
         self.rect = pygame.Rect(0, 0, 950, 950)
@@ -94,48 +76,6 @@ class Explosion(pygame.sprite.Sprite):
 
 explosion_group = pygame.sprite.Group()
 
-class Button:
-    def __init__(self, text, x, y, width, height, color, text_color=BLACK, enabled=False, border_radius=-1, click_sound=True, sound=None, mute_button=False, unmute_button=False):
-        self.text = text
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.color = color
-        self.text_color = text_color
-        self.enabled = enabled
-        self.border_radius = border_radius
-        self.click_sound = click_sound
-        self.sound = sound
-        self.mute_button = mute_button
-        self.unmute_button = unmute_button
-
-
-    def draw(self):
-        pygame.draw.rect(WIN, self.color, (self.x, self.y, self.width, self.height), border_radius=self.border_radius)
-        font = pygame.font.SysFont("consolas", 40)
-        text = font.render(self.text, True, self.text_color)
-        WIN.blit(text, (self.x + round(self.width / 2) - round(text.get_width() / 2),
-                        (self.y + round(self.height / 2) - round(text.get_height() / 2))))
-
-    def click(self, pos):
-        global sound_enabled
-        x1 = pos[0]
-        y1 = pos[1]
-        if self.x <= x1 <= self.x + self.width and self.y <= y1 <= self.y + self.height and self.enabled:
-            if self.unmute_button or self.mute_button and not sound_enabled:
-                self.sound.play()
-            if self.click_sound and sound_enabled and not self.mute_button:
-                self.sound.play()
-            return True
-        else:
-            return False
-
-    def enable(self):
-        self.enabled = True
-
-    def disable(self):
-        self.enabled = False
 
 def parse_color(color):
     if color == "Red":
@@ -148,24 +88,24 @@ def parse_color(color):
         return YELLOW
 
 SELECT_COLOR_BUTTONS = (
-    Button('Red', 375, 175, 200, 200, RED, RED, sound=a.click),
-    Button('Green', 375, 375, 200, 200, GREEN, GREEN, sound=a.click),
-    Button('Blue', 175, 175, 200, 200, BLUE, BLUE, sound=a.click),
-    Button('Yellow', 175, 375, 200, 200, YELLOW, YELLOW, sound=a.click),
+    Button(window, 'Red', 375, 175, 200, 200, RED, RED, sound=assets.click),
+    Button(window, 'Green', 375, 375, 200, 200, GREEN, GREEN, sound=assets.click),
+    Button(window, 'Blue', 175, 175, 200, 200, BLUE, BLUE, sound=assets.click),
+    Button(window, 'Yellow', 175, 375, 200, 200, YELLOW, YELLOW, sound=assets.click),
 )
 
 MUTE_BUTTON_LOCATION = (600, 590)
-MUTE_BUTTON = (Button('Mute', MUTE_BUTTON_LOCATION[0], MUTE_BUTTON_LOCATION[1], 100, 100, WHITE, WHITE, sound=a.click, mute_button=True),)
-UNMUTE_BUTTON = (Button('Unmute', MUTE_BUTTON_LOCATION[0], MUTE_BUTTON_LOCATION[1], 100, 100, WHITE, WHITE, sound=a.click, unmute_button=True),)
+MUTE_BUTTON = (Button(window, client_state, 'Mute', MUTE_BUTTON_LOCATION[0], MUTE_BUTTON_LOCATION[1], 100, 100, WHITE, WHITE, sound=assets.click),)
+UNMUTE_BUTTON = (Button(window, client_state, 'Unmute', MUTE_BUTTON_LOCATION[0], MUTE_BUTTON_LOCATION[1], 100, 100, WHITE, WHITE, sound=assets.click),)
 
-START_GAME_BUTTON = (Button('Start Game', 420, 450, 275, 110, BLACK, WHITE, sound=a.click),)
-START_GAME_BUTTON = (Button('Start Game', 420, 450, 275, 110, BLACK, WHITE, sound=a.click),)
+START_GAME_BUTTON = (Button(window, client_state, 'Start Game', 420, 450, 275, 110, BLACK, WHITE, sound=assets.click),)
+START_GAME_BUTTON = (Button(window, client_state, 'Start Game', 420, 450, 275, 110, BLACK, WHITE, sound=assets.click),)
 
-READY_UP_BUTTON = (Button('Ready Up', 225, 450, 300, 150, BLACK, WHITE, sound=a.click),)
+READY_UP_BUTTON = (Button(window, client_state, 'Ready Up', 225, 450, 300, 150, BLACK, WHITE, sound=assets.click),)
 
-DICE_BUTTON = (Button('roll', 550, 625, 100, 100, BLACK, WHITE, border_radius=100, sound=a.dice),)
+DICE_BUTTON = (Button(window, client_state, 'roll', 550, 625, 100, 100, BLACK, WHITE, border_radius=100, sound=assets.dice),)
 
-NUKE_BUTTON = (Button('NUKE', 295, 615, 130, 130, RED, WHITE, border_radius=50, sound=a.click),)
+NUKE_BUTTON = (Button(window, client_state, 'NUKE', 295, 615, 130, 130, RED, WHITE, border_radius=50, sound=assets.click),)
 
 BUTTONS = SELECT_COLOR_BUTTONS + READY_UP_BUTTON + DICE_BUTTON + NUKE_BUTTON
 
@@ -178,18 +118,18 @@ def check_and_display_waiting_for_players(game, p):
     if not game.started and game.players[p][1] != None:
         font = pygame.font.SysFont("consolas", 25)
         text = font.render("Lobby: " + str(game.id), True, BLACK)
-        WIN.blit(text, (10, 10))
+        window.blit(text, (10, 10))
         text = font.render("Player: " + str(p), True, BLACK)
-        WIN.blit(text, (10, 40))
+        window.blit(text, (10, 40))
         text = font.render(game.players[p][1], True, parse_color(game.players[p][1]))
-        WIN.blit(text, (10, 70))
+        window.blit(text, (10, 70))
         font = pygame.font.SysFont("consolas", 40)
         text = font.render("Players in Lobby: (" + str(game.num_of_players) + "/4)", True, BLACK)
-        blit_centered_text(text, -220)
+        blit_centered_text(window, text, -220)
         if game.num_of_players < 4:
             font = pygame.font.SysFont("consolas", 50)
             text = font.render("Waiting for Players...", True, BLUE)
-            blit_centered_text(text, -50)
+            blit_centered_text(window, text, -50)
         if game.num_of_players >= 2:
             if game.players[p][3] == True:
                 READY_UP_BUTTON[0].disable()
@@ -202,7 +142,7 @@ def check_and_ask_for_color(game, p):
     if game.players[p][1] == None:
         font = pygame.font.SysFont("consolas", 50)
         text = font.render("Choose your colour!", True, BLACK)
-        blit_centered_text(text, -300)
+        blit_centered_text(window, text, -300)
         for btn in SELECT_COLOR_BUTTONS:
             if btn.text in game.blocked_colors:
                 btn.disable()
@@ -233,11 +173,11 @@ def draw_stationary_pieces(player):
             if shake_amount == -5:
                 shake_direction = not shake_direction
     if game.pieces_degraded == 0:
-        WIN.blit(a.PIECES[game.players[player][1]],
+        window.blit(assets.PIECES[game.players[player][1]],
                  (BOARD_START_X + x_offset * SQUARE_SIZE + offset_nudge + shake_amount,
                   BOARD_START_Y - y_offset * SQUARE_SIZE + offset_nudge))
     else:
-        WIN.blit(a.PIECESDEG[game.players[player][1]],
+        window.blit(assets.PIECESDEG[game.players[player][1]],
                  (BOARD_START_X + x_offset * SQUARE_SIZE + offset_nudge + shake_amount,
                   BOARD_START_Y - y_offset * SQUARE_SIZE + offset_nudge))
 
@@ -286,14 +226,14 @@ def play_movement_animation(player, offset_nudge, p, game):
                     draw_stationary_pieces(hypothetical_stationary_player)
         draw_nukes()
         if game.pieces_degraded == 0:
-            WIN.blit(a.PIECES[game.players[player][1]],
+            window.blit(assets.PIECES[game.players[player][1]],
                      (BOARD_START_X + old_x * SQUARE_SIZE + 0.85 * ticks_passed * distance_x + offset_nudge,
                       BOARD_START_Y - old_y * SQUARE_SIZE - 0.85 * ticks_passed * distance_y + offset_nudge))
         else:
-            WIN.blit(a.PIECESDEG[game.players[player][1]],
+            window.blit(assets.PIECESDEG[game.players[player][1]],
                      (BOARD_START_X + old_x * SQUARE_SIZE + 0.85 * ticks_passed * distance_x + offset_nudge,
                       BOARD_START_Y - old_y * SQUARE_SIZE - 0.85 * ticks_passed * distance_y + offset_nudge))
-        explosion_group.draw(WIN)
+        explosion_group.draw(window)
         explosion_group.update()
         pygame.display.update()
         if not loop_completed and ticks_passed == 60:
@@ -317,78 +257,78 @@ def draw_snakes_and_ladders():
             # if game.snakes[snake][3] == True:
             #     x_offset += x_offset
             if snake == 0:
-                WIN.blit(a.SNAKE1,
+                window.blit(assets.SNAKE1,
                          (117 + (game.snakes[snake][0][0] * 51) - 19, 517 - (game.snakes[snake][0][1] * 51) + 33))
             if snake == 1:
-                WIN.blit(a.SNAKE2,
+                window.blit(assets.SNAKE2,
                          (117 + (game.snakes[snake][0][0] * 51) - 65, 517 - (game.snakes[snake][0][1] * 51) + 23))
             if snake == 2:
-                WIN.blit(a.SNAKE3,
+                window.blit(assets.SNAKE3,
                          (117 + (game.snakes[snake][0][0] * 51) + 10, 517 - (game.snakes[snake][0][1] * 51) + 20))
             if snake == 3:
-                WIN.blit(a.SNAKE4,
+                window.blit(assets.SNAKE4,
                          (117 + (game.snakes[snake][0][0] * 51) , 517 - (game.snakes[snake][0][1] * 51) + 28))
         for ladder in range (3, -1, -1):
             if ladder == 0:
-                WIN.blit(a.LADDER1,
+                window.blit(assets.LADDER1,
                          (117 + (game.ladders[ladder][0][0] * 51) + 15, 517 - (game.ladders[ladder][0][1] * 51) - 148))
             if ladder == 1:
-                WIN.blit(a.LADDER2,
+                window.blit(assets.LADDER2,
                          (117 + (game.ladders[ladder][0][0] * 51) + 15, 517 - (game.ladders[ladder][0][1] * 51) - 79))
             if ladder == 2:
-                WIN.blit(a.LADDER3,
+                window.blit(assets.LADDER3,
                          (117 + (game.ladders[ladder][0][0] * 51) - 41, 517 - (game.ladders[ladder][0][1] * 51) - 67))
             if ladder == 3:
-                WIN.blit(a.LADDER4,
+                window.blit(assets.LADDER4,
                          (117 + (game.ladders[ladder][0][0] * 51) - 17, 517 - (game.ladders[ladder][0][1] * 51) - 240))
     else:
         for snake in range(3, -1, -1):
             if snake == 0:
-                WIN.blit(a.SNAKE1DEG,
+                window.blit(assets.SNAKE1DEG,
                          (117 + (game.snakes[snake][0][0] * 51) - 19, 517 - (game.snakes[snake][0][1] * 51) + 33))
             if snake == 1:
-                WIN.blit(a.SNAKE2DEG,
+                window.blit(assets.SNAKE2DEG,
                          (117 + (game.snakes[snake][0][0] * 51) - 65, 517 - (game.snakes[snake][0][1] * 51) + 23))
             if snake == 2:
-                WIN.blit(a.SNAKE3DEG,
+                window.blit(assets.SNAKE3DEG,
                          (117 + (game.snakes[snake][0][0] * 51) + 10, 517 - (game.snakes[snake][0][1] * 51) + 20))
             if snake == 3:
-                WIN.blit(a.SNAKE4DEG,
+                window.blit(assets.SNAKE4DEG,
                          (117 + (game.snakes[snake][0][0] * 51) , 517 - (game.snakes[snake][0][1] * 51) + 28))
         for ladder in range (3, -1, -1):
             if ladder == 0:
-                WIN.blit(a.LADDER1,
+                window.blit(assets.LADDER1,
                          (117 + (game.ladders[ladder][0][0] * 51) + 15, 517 - (game.ladders[ladder][0][1] * 51) - 148))
             if ladder == 1:
-                WIN.blit(a.LADDER2DEG,
+                window.blit(assets.LADDER2DEG,
                          (117 + (game.ladders[ladder][0][0] * 51) + 15, 517 - (game.ladders[ladder][0][1] * 51) - 79))
             if ladder == 2:
-                WIN.blit(a.LADDER3,
+                window.blit(assets.LADDER3,
                          (117 + (game.ladders[ladder][0][0] * 51) - 41, 517 - (game.ladders[ladder][0][1] * 51) - 67))
             if ladder == 3:
-                WIN.blit(a.LADDER4DEG,
+                window.blit(assets.LADDER4DEG,
                          (117 + (game.ladders[ladder][0][0] * 51) - 17, 517 - (game.ladders[ladder][0][1] * 51) - 240))
 
 def draw_nukes():
-    # WIN.blit(a.NUCLEARBOMB,
+    # window.blit(assets.NUCLEARBOMB,
     #          (117 + (game.ladders[ladder][0][0] * 51) - 17, 517 - (game.ladders[ladder][0][1] * 51) - 240))
     for nuke in (range(len(nuke_cache))):
-        WIN.blit(a.NUCLEARBOMB,
+        window.blit(assets.NUCLEARBOMB,
                  (125 + (nuke_cache[nuke][0] * 51), 522 - (nuke_cache[nuke][1] * 51)))
 
 def draw_nuke_buttons(p):
     if game.players[p][2] == 0:
-        WIN.blit(a.NUKEINACTIVE, NUKE_ICON_LOCATION)
+        window.blit(assets.NUKEINACTIVE, NUKE_ICON_LOCATION)
     else:
-        WIN.blit(a.NUKEACTIVE, NUKE_ICON_LOCATION)
+        window.blit(assets.NUKEACTIVE, NUKE_ICON_LOCATION)
         if game.degraded_nuke_text == 0:
             font = pygame.font.SysFont("consolas", 120)
             text = font.render(str(game.players[p][2]), True, RED)
-            WIN.blit(text, (90, 620))
+            window.blit(text, (90, 620))
         else:
             font = pygame.font.SysFont("impact", 120)
             text = font.render(str(game.players[p][2]), True, RED)
-            WIN.blit(text, (90, 600))
+            window.blit(text, (90, 600))
         NUKE_BUTTON[0].draw()
 
 def draw_dice(p):
@@ -398,33 +338,33 @@ def draw_dice(p):
         DICE_BUTTON[0].disable()
     DICE_BUTTON[0].draw()
     if game.dice_degraded == 0:
-        WIN.blit(a.DICE[game.dice_pips], (550, 625))
+        window.blit(assets.DICE[game.dice_pips], (550, 625))
     else:
-        WIN.blit(a.DICEDEG[game.dice_pips], (550, 625))
+        window.blit(assets.DICEDEG[game.dice_pips], (550, 625))
 
 def draw_move_icon():
     for player in range(1, len(game.players)):
         if player == game.player_to_move and game.pieces_degraded == 0:
             if game.players[player][1] == "Red":
-                WIN.blit(a.BIGGERPIECERED, MOVE_TURN_ICON_LOCATION)
+                window.blit(assets.BIGGERPIECERED, MOVE_TURN_ICON_LOCATION)
             if game.players[player][1] == "Green":
-                WIN.blit(a.BIGGERPIECEGREEN, MOVE_TURN_ICON_LOCATION)
+                window.blit(assets.BIGGERPIECEGREEN, MOVE_TURN_ICON_LOCATION)
             if game.players[player][1] == "Blue":
-                WIN.blit(a.BIGGERPIECEBLUE, MOVE_TURN_ICON_LOCATION)
+                window.blit(assets.BIGGERPIECEBLUE, MOVE_TURN_ICON_LOCATION)
             if game.players[player][1] == "Yellow":
-                WIN.blit(a.BIGGERPIECEYELLOW, MOVE_TURN_ICON_LOCATION)
+                window.blit(assets.BIGGERPIECEYELLOW, MOVE_TURN_ICON_LOCATION)
         elif player == game.player_to_move and game.pieces_degraded == 1:
             if game.players[player][1] == "Red":
-                WIN.blit(a.BIGGERPIECEREDDEG, MOVE_TURN_ICON_LOCATION)
+                window.blit(assets.BIGGERPIECEREDDEG, MOVE_TURN_ICON_LOCATION)
             if game.players[player][1] == "Green":
-                WIN.blit(a.BIGGERPIECEGREENDEG, MOVE_TURN_ICON_LOCATION)
+                window.blit(assets.BIGGERPIECEGREENDEG, MOVE_TURN_ICON_LOCATION)
             if game.players[player][1] == "Blue":
-                WIN.blit(a.BIGGERPIECEBLUEDEG, MOVE_TURN_ICON_LOCATION)
+                window.blit(assets.BIGGERPIECEBLUEDEG, MOVE_TURN_ICON_LOCATION)
             if game.players[player][1] == "Yellow":
-                WIN.blit(a.BIGGERPIECEYELLOWDEG, MOVE_TURN_ICON_LOCATION)
+                window.blit(assets.BIGGERPIECEYELLOWDEG, MOVE_TURN_ICON_LOCATION)
 
 def draw_board(game):
-    WIN.blit(a.BOARD[game.board], (WIDTH / 2 - a.BOARD1.get_width() / 2, 30))
+    window.blit(assets.BOARD[game.board], (WIDTH / 2 - assets.BOARD1.get_width() / 2, 30))
 
 def draw_winner_window(p, game):
     font = pygame.font.SysFont("consolas", 70, bold=True)
@@ -433,28 +373,28 @@ def draw_winner_window(p, game):
         #, parse_color(game.players[game.winner][1])
         if game.num_nukes_used == 0:
             text = font.render("YOU WON! :D", True, parse_color(game.players[game.winner][1]))
-            if sound_enabled:
-                a.pacifistwin.play()
+            if client_state.client_state.sound_enabled:
+                assets.pacifistwin.play()
             pygame.mixer.music.stop()
         if game.num_nukes_used >= 1:
             text = font.render("You won...", True, parse_color(game.players[game.winner][1]))
-            if sound_enabled:
-                a.nukewin.play()
-            if music_degraded == 0:
+            if client_state.sound_enabled:
+                assets.nukewin.play()
+            if client_state.music_degraded == 0:
                 pygame.mixer.music.stop()
     else:
         if game.num_nukes_used == 0:
             text = font.render(game.players[game.winner][1].upper() + " WON! :)", True, parse_color(game.players[game.winner][1]))
-            if sound_enabled:
-                a.pacifistwin.play()
+            if client_state.sound_enabled:
+                assets.pacifistwin.play()
             pygame.mixer.music.stop()
         if game.num_nukes_used >= 1:
             text = font.render(game.players[game.winner][1] + " won...", True, parse_color(game.players[game.winner][1]))
-            if sound_enabled:
-                a.nukewin.play()
-            if music_degraded == 0:
+            if client_state.sound_enabled:
+                assets.nukewin.play()
+            if client_state.music_degraded == 0:
                 pygame.mixer.music.stop()
-    blit_centered_text(text, y_offset=-325)
+    blit_centered_text(window, text, y_offset=-325)
     # else:
     #     font = pygame.font.SysFont("consolas", 25)
     #     if game.winner == p:
@@ -486,31 +426,31 @@ def draw_game_objects(game=None, p=None, player_position_cache=None):
         draw_snakes_and_ladders()
     draw_nukes()
     draw_game_pieces(game, p)
-    explosion_group.draw(WIN)
+    explosion_group.draw(window)
     explosion_group.update()
     # if game.winner != 0:
     #     draw_winner_window(p)
 
-    # pygame.draw.rect(WIN, BLACK, (122,522,46,47))
-    # pygame.draw.rect(WIN, BLACK, (173,522,46,47))
-    # pygame.draw.rect(WIN, BLACK, (122,471,46,47))
+    # pygame.draw.rect(window, BLACK, (122,522,46,47))
+    # pygame.draw.rect(window, BLACK, (173,522,46,47))
+    # pygame.draw.rect(window, BLACK, (122,471,46,47))
     # DEBUG CODE
     # redraw_window(white = False)
 
 def draw_bg(game=None):
     if game == None or game.discoloration == 0:
-        WIN.fill(WHITE)
+        window.fill(WHITE)
     if game != None:
         if game.discoloration == 1:
-            WIN.fill((192, 192, 192))
+            window.fill((192, 192, 192))
         elif game.discoloration == 2:
-            WIN.fill((128, 128, 128))
+            window.fill((128, 128, 128))
         elif game.discoloration == 3:
-            WIN.fill((64, 64, 64))
+            window.fill((64, 64, 64))
         elif game.discoloration == 4:
-            WIN.fill((102, 0, 0))
+            window.fill((102, 0, 0))
         elif game.discoloration >= 5:
-            WIN.fill((0, 0, 0))
+            window.fill((0, 0, 0))
 
 def redraw_window(game=None, p=None, white=True, update=True):
     if white == True:
@@ -535,7 +475,7 @@ def connect():
     #     main(p)
     font = pygame.font.SysFont("consolas", 80)
     text = font.render("Connecting...", True, BLUE)
-    blit_centered_text(text)
+    blit_centered_text(window, text)
     pygame.display.update()
     try:
         p = int(n.get_p())
@@ -554,7 +494,7 @@ def connect():
 
 
 def main(p):
-    global players_moving, player_position_cache, music_degraded, game, nukes_acquired
+    global players_moving, player_position_cache, game, nukes_acquired
     run = True
     nuke_rendered = False
     nukes_used = 0
@@ -573,22 +513,22 @@ def main(p):
             print(e)
             break
         if game.started:
-            if not music_set and sound_enabled:
-                pygame.mixer.music.load(a.papers_please)
+            if not music_set and client_state.sound_enabled:
+                pygame.mixer.music.load(assets.papers_please)
                 pygame.mixer.music.set_volume(0.1)
                 pygame.mixer.music.play(-1)
                 music_set = True
-            if nukes_used == 7 and music_degraded == 0:
-                pygame.mixer.music.load(a.but_nobody_came)
+            if nukes_used == 7 and client_state.music_degraded == 0:
+                pygame.mixer.music.load(assets.but_nobody_came)
                 pygame.mixer.music.set_volume(0.1)
                 pygame.mixer.music.play(-1)
-                music_degraded = 1
-            if music_degraded == 1:
-                # pygame.mixer.music.load(a.genocide)
-                pygame.mixer.music.load(a.but_nobody_came)
+                client_state.music_degraded = 1
+            if client_state.music_degraded == 1:
+                # pygame.mixer.music.load(assets.genocide)
+                pygame.mixer.music.load(assets.but_nobody_came)
                 pygame.mixer.music.set_volume(0.1)
                 pygame.mixer.music.play(-1)
-                music_degraded = 2
+                client_state.music_degraded = 2
         if not nukes_cached:
             cache_initial_nuke_positions(game)
         for event in pygame.event.get():
@@ -671,12 +611,12 @@ def main(p):
             game = n.send("debug")
 
         if snakes_gone_down != game.snakes_gone_down:
-            if sound_enabled:
-                a.snake.play()
+            if client_state.sound_enabled:
+                assets.snake.play()
             snakes_gone_down += 1
         if ladders_gone_up != game.ladders_gone_up:
-            if sound_enabled:
-                a.ladder.play()
+            if client_state.sound_enabled:
+                assets.ladder.play()
             ladders_gone_up += 1
 
         if nukes_used == game.num_nukes_used:
@@ -687,8 +627,8 @@ def main(p):
             if not nuke_rendered:
                 explosion = Explosion(WIDTH / 2, HEIGHT / 2)
                 explosion_group.add(explosion)
-                if sound_enabled:
-                    a.explosion.play()
+                if client_state.sound_enabled:
+                    assets.explosion.play()
                 nuke_rendered = True
         check_if_player_moving(game)
         # main game redraw function
@@ -712,8 +652,8 @@ def cache_nukes(p, game):
             for nuke in range(len(nuke_cache)):
                 if game.nukes[nuke] != nuke_cache[nuke]:
                     nuke_cache[nuke] = game.nukes[nuke]
-            if sound_enabled:
-                a.nuke_get_sounds[random.randint(0, 4)].play()
+            if client_state.sound_enabled:
+                assets.nuke_get_sounds[random.randint(0, 4)].play()
             nukes_acquired += 1
         else:
             for nuke in range(len(nuke_cache)):
@@ -752,11 +692,11 @@ def debug_print(p, game):
     # print(game.players[game.player_to_move][1], "to move")
 
 def menu_screen():
-    global nukes_cached, sound_enabled, shake_amount, shake_direction
+    global nukes_cached, shake_amount, shake_direction
     init_vars()
     explosion_group.empty()
     run = True
-    if music_degraded == 0 and sound_enabled:
+    if client_state.music_degraded == 0 and client_state.sound_enabled:
         pygame.mixer.music.stop()
     nukes_cached = False
     shake_amount = 0
@@ -767,25 +707,25 @@ def menu_screen():
         # while title_ticks_passed < 2000:
         clock.tick(60)
         #     if title_ticks_passed <= 500:
-        #         WIN.blit(a.TITLE1, (0, 0))
+        #         window.blit(assets.TITLE1, (0, 0))
         #     if 2000 >= title_ticks_passed > 500:
-        #         WIN.blit(a.TITLE2, (0, 0))
+        #         window.blit(assets.TITLE2, (0, 0))
         #     pygame.display.update()
         #     title_ticks_passed += 1
-        WIN.blit(a.TITLE3, (0, 0))
+        window.blit(assets.TITLE3, (0, 0))
         # font = pygame.font.SysFont("consolas", 60)
         # text = font.render("Click to Play!", True, RED)
         START_GAME_BUTTON[0].draw()
         START_GAME_BUTTON[0].enable()
-        if sound_enabled:
+        if client_state.sound_enabled:
             # MUTE_BUTTON[0].draw()
-            WIN.blit(a.UNMUTED, MUTE_BUTTON_LOCATION)
+            window.blit(assets.UNMUTED, MUTE_BUTTON_LOCATION)
             MUTE_BUTTON[0].enable()
         else:
             # UNMUTE_BUTTON[0].draw()
-            WIN.blit(a.MUTED, MUTE_BUTTON_LOCATION)
+            window.blit(assets.MUTED, MUTE_BUTTON_LOCATION)
             UNMUTE_BUTTON[0].enable()
-        explosion_group.draw(WIN)
+        explosion_group.draw(window)
         explosion_group.update()
         # blit_centered_text(text)
         pygame.display.update()
@@ -798,7 +738,7 @@ def menu_screen():
                 if START_GAME_BUTTON[0].click(pos):
                     run = False
                 if MUTE_BUTTON[0].click(pos) or UNMUTE_BUTTON[0].click(pos):
-                    sound_enabled = not sound_enabled
+                    client_state.sound_enabled = not client_state.sound_enabled
                 explosion_easter_egg_counter += 1
                 if explosion_easter_egg_counter > 50:
                     explosion = Explosion(WIDTH/2, HEIGHT/2)
@@ -811,7 +751,7 @@ def failed_to_connect():
     redraw_window()
     font = pygame.font.SysFont("consolas", 60)
     text = font.render("Failed to connect! :(", True, BLACK)
-    blit_centered_text(text)
+    blit_centered_text(window, text)
     pygame.display.update()
     pygame.time.delay(1500)
     menu_screen()
