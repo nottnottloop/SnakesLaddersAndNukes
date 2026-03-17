@@ -11,88 +11,26 @@ from .constants import *
 from .networking import Network
 from ..shared.game import Game
 
+from .screens.main_menu import MenuScreen
+
 pygame.font.init()
 pygame.display.set_icon(assets.ICON)
-
-window = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Snakes, Ladders and Nukes")
 
+window: pygame.surface.Surface = pygame.display.set_mode((WIDTH, HEIGHT))
 state = ClientState()
+menu_screen = MenuScreen(window, state)
+state.screen_state = menu_screen
 
-window.fill(WHITE)
-font = pygame.font.SysFont("consolas", 60)
-text = font.render("LOADING", True, BLACK)
-blit_centered_text(window, text)
-pygame.display.update()
-
-network = Network()
-clock = pygame.time.Clock()
-
-explosion_group = pygame.sprite.Group()
-
-MUTE_BUTTON_LOCATION = (600, 590)
 NUKE_ICON_LOCATION = (15, 635)
 MOVE_TURN_ICON_LOCATION = (5, 5)
 
-ui_buttons = {
-    "mute_button": Button(window, state, 'Mute', MUTE_BUTTON_LOCATION[0], MUTE_BUTTON_LOCATION[1], 100, 100, WHITE, WHITE, sound=assets.click),
-    "unmute_button": Button(window, state, 'Unmute', MUTE_BUTTON_LOCATION[0], MUTE_BUTTON_LOCATION[1], 100, 100, WHITE, WHITE, sound=assets.click),
-    "start_game_button": Button(window, state, 'Start Game', 420, 450, 275, 110, BLACK, WHITE, sound=assets.click),
-    "ready_up_button": Button(window, state, 'Ready Up', 225, 450, 300, 150, BLACK, WHITE, sound=assets.click),
+buttons = {
     "dice_button": Button(window, state, 'roll', 550, 625, 100, 100, BLACK, WHITE, border_radius=100, sound=assets.dice),
     "nuke_button": Button(window, state, 'NUKE', 295, 615, 130, 130, RED, WHITE, border_radius=50, sound=assets.click),
 }
 
-select_color_buttons = {
-    "red": Button(window, state, 'Red', 375, 175, 200, 200, RED, RED, sound=assets.click),
-    "green": Button(window, state, 'Green', 375, 375, 200, 200, GREEN, GREEN, sound=assets.click),
-    "blue": Button(window, state, 'Blue', 175, 175, 200, 200, BLUE, BLUE, sound=assets.click),
-    "yellow": Button(window, state, 'Yellow', 175, 375, 200, 200, YELLOW, YELLOW, sound=assets.click),
-}
-
-buttons = ui_buttons | select_color_buttons
-
-def check_and_display_waiting_for_players(p):
-    # checks if color selection has been made. if it has been made, display waiting for players
-    if not state.game.started and state.game.players[p][1] != None:
-        font = pygame.font.SysFont("consolas", 25)
-        text = font.render("Lobby: " + str(state.game.id), True, BLACK)
-        window.blit(text, (10, 10))
-        text = font.render("Player: " + str(p), True, BLACK)
-        window.blit(text, (10, 40))
-        text = font.render(state.game.players[p][1], True, parse_color(state.game.players[p][1]))
-        window.blit(text, (10, 70))
-        font = pygame.font.SysFont("consolas", 40)
-        text = font.render("Players in Lobby: (" + str(state.game.num_of_players) + "/4)", True, BLACK)
-        blit_centered_text(window, text, -220)
-        if state.game.num_of_players < 4:
-            font = pygame.font.SysFont("consolas", 50)
-            text = font.render("Waiting for Players...", True, BLUE)
-            blit_centered_text(window, text, -50)
-        if state.game.num_of_players >= 2:
-            if state.game.players[p][3] == True:
-                buttons["ready_up_button"].disable()
-            else:
-                buttons["ready_up_button"].draw()
-                buttons["ready_up_button"].enable()
-
-
-def check_and_ask_for_color(p):
-    if state.game.players[p][1] == None:
-        font = pygame.font.SysFont("consolas", 50)
-        text = font.render("Choose your colour!", True, BLACK)
-        blit_centered_text(window, text, -300)
-        for btn in select_color_buttons.values():
-            if btn.text in state.game.blocked_colors:
-                btn.disable()
-            else:
-                btn.draw()
-                btn.enable()
-    else:
-        for btn in select_color_buttons.values():
-            btn.disable()
-
-    # nudge each of the player tokens to prevent overlapping
+# nudge each of the player tokens to prevent overlapping
 def calculate_offset_nudge(player):
     return (player - 1) * 5
 
@@ -147,7 +85,7 @@ def play_movement_animation(player, offset_nudge, p):
     while state.players_moving[player]:
         state.player_movement_started[player] = True
         ticks_passed += 1
-        draw_bg()
+        draw_bg(window, state)
         draw_board()
         draw_dice(p)
         draw_nuke_buttons(p)
@@ -343,56 +281,6 @@ def draw_game_objects(p=None, player_position_cache=None):
     explosion_group.draw(window)
     explosion_group.update()
 
-def draw_bg():
-    if state.game == None or state.game.discoloration == 0:
-        window.fill(WHITE)
-    if state.game != None:
-        if state.game.discoloration == 1:
-            window.fill((192, 192, 192))
-        elif state.game.discoloration == 2:
-            window.fill((128, 128, 128))
-        elif state.game.discoloration == 3:
-            window.fill((64, 64, 64))
-        elif state.game.discoloration == 4:
-            window.fill((102, 0, 0))
-        elif state.game.discoloration >= 5:
-            window.fill((0, 0, 0))
-
-def redraw_window(p=None, white=True, update=True):
-    if white == True:
-        draw_bg()
-    if state.game and p != None:
-        if state.game.started == True:
-            draw_game_objects(p)
-        # if player has not chosen color yet
-        check_and_ask_for_color(p)
-        check_and_display_waiting_for_players(p)
-    if update:
-        pygame.display.update()
-
-def connect():
-    redraw_window()
-    server_crash = False
-    font = pygame.font.SysFont("consolas", 80)
-    text = font.render("Connecting...", True, BLUE)
-    blit_centered_text(window, text)
-    pygame.display.update()
-    try:
-        p = int(network.get_p())
-    except ValueError:
-        print("Server crashed!")
-        pygame.quit()
-        server_crash = True
-    except TypeError as e:
-        print("Could not connect!")
-        print(e)
-        failed_to_connect()
-
-    if not server_crash:
-        print("You are player", p)
-        main(p)
-
-
 def main(p):
     run = True
     nuke_rendered = False
@@ -544,51 +432,20 @@ def check_if_player_moving():
             if state.player_position_cache[player] != state.game.players[player][0]:
                 state.players_moving[player] = True
 
-def menu_screen():
-    run = True
-    if state.music_degraded == 0 and state.sound_enabled:
-        pygame.mixer.music.stop()
-    explosion_easter_egg_counter = 0
-    while run:
-        clock.tick(60)
-        window.blit(assets.TITLE3, (0, 0))
-        buttons["start_game_button"].draw()
-        buttons["start_game_button"].enable()
-        if state.sound_enabled:
-            window.blit(assets.UNMUTED, MUTE_BUTTON_LOCATION)
-            buttons["mute_button"].enable()
+#window.fill(WHITE)
+#font = pygame.font.SysFont("consolas", 60)
+#text = font.render("LOADING", True, BLACK)
+#blit_centered_text(window, text)
+#pygame.display.update()
+
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
         else:
-            window.blit(assets.MUTED, MUTE_BUTTON_LOCATION)
-            buttons["unmute_button"].enable()
-        explosion_group.draw(window)
-        explosion_group.update()
-        pygame.display.update()
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                sys.exit()
-            if event.type == pygame.MOUSEBUTTONUP:
-                pos = pygame.mouse.get_pos()
-                if buttons["start_game_button"].click(pos):
-                    buttons["mute_button"].enabled = False
-                    buttons["unmute_button"].enabled = False
-                    buttons["start_game_button"].enabled = False
-                    run = False
-                if buttons["mute_button"].click(pos) or buttons["unmute_button"].click(pos):
-                    state.sound_enabled = not state.sound_enabled
-                explosion_easter_egg_counter += 1
-                if explosion_easter_egg_counter > 10:
-                    explosion = Explosion(WIDTH/2, HEIGHT/2)
-                    explosion_group.add(explosion)
-    connect()
-
-def failed_to_connect():
-    redraw_window()
-    font = pygame.font.SysFont("consolas", 60)
-    text = font.render("Failed to connect! :(", True, BLACK)
-    blit_centered_text(window, text)
-    pygame.display.update()
-    pygame.time.delay(1500)
-    menu_screen()
-
-menu_screen()
+            state.screen_state.handle_event(event)
+    dt = state.clock.tick(60)
+    state.screen_state.update(dt)
+    state.screen_state.draw()
+    pygame.display.flip()

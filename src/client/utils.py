@@ -1,10 +1,33 @@
 import pygame
+from abc import ABC, abstractmethod
+
 from ..shared.game import Game
 from .constants import *
+from .networking import Network
+
+class ScreenStateInterface(ABC):
+    @abstractmethod
+    def handle_event(self, event: pygame.event.Event):
+        """Process input events (keyboard, mouse, etc.)"""
+        pass
+
+    @abstractmethod
+    def update(self, dt: float):
+        """Update game logic. dt is delta time in milliseconds."""
+        pass
+
+    @abstractmethod
+    def draw(self):
+        """Draw state elements to the screen."""
+        pass
 
 class ClientState():
     def __init__(self):
         self.game: Game = None
+        self.screen_state: ScreenStateInterface
+        self.network = Network()
+        self.clock = pygame.time.Clock()
+
         self.music_degraded = 0
         self.sound_enabled = True
 
@@ -21,6 +44,7 @@ class ClientState():
 
         self.shake_amount = 0
         self.shake_direction = True
+        self.explosion_group = pygame.sprite.Group()
 
         for _ in range(5):
             self.players_moving.append(False)
@@ -39,3 +63,18 @@ def parse_color(color):
         return BLUE
     if color == "Yellow":
         return YELLOW
+
+def draw_bg(window, state):
+    if state.game == None or state.game.discoloration == 0:
+        window.fill(WHITE)
+    if state.game != None:
+        if state.game.discoloration == 1:
+            window.fill((192, 192, 192))
+        elif state.game.discoloration == 2:
+            window.fill((128, 128, 128))
+        elif state.game.discoloration == 3:
+            window.fill((64, 64, 64))
+        elif state.game.discoloration == 4:
+            window.fill((102, 0, 0))
+        elif state.game.discoloration >= 5:
+            window.fill((0, 0, 0))
