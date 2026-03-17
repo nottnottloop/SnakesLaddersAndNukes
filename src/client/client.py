@@ -1,12 +1,13 @@
 import pygame
 import random
 import sys
-import networking
 
-import assets
-from constants import *
-from button import Button
-from client_utils import *
+from . import load_assets as assets
+from .button import Button
+from .utils import *
+from .constants import *
+from .networking import Network
+from ..shared.game import Game
 
 pygame.font.init()
 pygame.display.set_icon(assets.ICON)
@@ -22,7 +23,7 @@ text = font.render("LOADING", True, BLACK)
 blit_centered_text(window, text)
 pygame.display.update()
 
-network = networking.Network()
+network = Network()
 
 clock = pygame.time.Clock()
 

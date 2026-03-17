@@ -7,9 +7,9 @@ The game progressively gets more dystopic and scary as more nukes are used, beca
 
 Before playing, copy the `gameconfig.ini` from the `serverconfigs` directory to the root directory, and change the config IP address accordingly (IPV6). 
 
-After that to play run client.py using python3 from command line `python3 client.py` or `py client.py` on Windows
+After that to play run the client: `python3 src.client.client` or `py src.client.client` on Windows
 
-If for any god-forsaken reason you want to run the server, just `python3 .\server.py`. Make sure the IP and ports are set correctly in either case (client or server) for what you want to connect to. If you want to run a LAN game set the IP in both serverconfig.ini and gameconfig.ini to your IPv4 address listed in Windows' ipconfig tool from command line.
+If for any god-forsaken reason you want to run the server, just `python3 src.server.server`. Make sure the IP and ports are set correctly in either case (client or server) for what you want to connect to. If you want to run a LAN game set the IP in both serverconfig.ini and gameconfig.ini to your IPv4 address listed in Windows' ipconfig tool from command line.
 
 The awesome sprites were by yaotu, you can find them [here](https://yaotu.itch.io/snakes-and-ladders-board-game-assets) (thanks!). Comes packed with sound effects and music that is totally original and I made myself yes. (music: Papers Please theme and But Nobody Came from Undertale, sound effects MW2 nuke sounds)
 

@@ -1,6 +1,6 @@
 import pygame
-from constants import * 
-from client_utils import ClientState
+from .constants import * 
+from .utils import ClientState
 
 class Button:
     def __init__(self, window, client_state: ClientState, text, x, y, width, height, color, text_color=BLACK, enabled=False, border_radius=-1, click_sound=True, sound=None, callback=lambda *args, **kwargs: None):

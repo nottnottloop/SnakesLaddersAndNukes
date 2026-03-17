@@ -1,10 +1,10 @@
 import socket
 from threading import Thread
 import pickle
-import debug
 import configparser
 
-from game import Game
+from src.shared.game import Game
+import src.shared.debug as debug
 config = configparser.ConfigParser()
 
 config.read('serverconfig.ini')

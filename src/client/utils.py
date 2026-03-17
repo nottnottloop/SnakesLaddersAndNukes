@@ -1,5 +1,5 @@
 import pygame
-from constants import *
+from .constants import *
 
 class ClientState():
     def __init__(self):

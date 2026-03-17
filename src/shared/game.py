@@ -1,5 +1,5 @@
 import random
-import debug
+import src.shared.debug as debug
 
 class Game:
     board = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10,

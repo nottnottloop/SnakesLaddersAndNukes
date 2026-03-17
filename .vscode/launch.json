@@ -8,15 +8,19 @@
 			"name": "Client",
 			"type": "debugpy",
 			"request": "launch",
-			"program": "src/client/client.py",
-			"console": "integratedTerminal"
+			"module": "src.client.client",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true
 		},
 		{
 			"name": "Server",
 			"type": "debugpy",
 			"request": "launch",
-			"program": "src/server/server.py",
-			"console": "integratedTerminal"
+			"module": "src.server.server",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true
 		},
 	]
 }
