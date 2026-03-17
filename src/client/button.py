@@ -3,9 +3,9 @@ from .constants import *
 from .utils import ClientState
 
 class Button:
-    def __init__(self, window, client_state: ClientState, text, x, y, width, height, color, text_color=BLACK, enabled=False, border_radius=-1, click_sound=True, sound=None, callback=lambda *args, **kwargs: None):
+    def __init__(self, window, state: ClientState, text, x, y, width, height, color, text_color=BLACK, enabled=False, border_radius=-1, click_sound=True, sound=None, callback=lambda *args, **kwargs: None):
         self.window = window
-        self.client_state = client_state
+        self.state = state
         self.text = text
         self.x = x
         self.y = y
@@ -31,7 +31,7 @@ class Button:
         y1 = pos[1]
         if self.x <= x1 <= self.x + self.width and self.y <= y1 <= self.y + self.height and self.enabled:
             self.callback()
-            if self.client_state.sound_enabled:
+            if self.state.sound_enabled:
                 self.sound.play()
             return True
         else:

@@ -450,27 +450,3 @@ class Game:
             self.players[p][2] = 100
         if debug.i_just_want_to_win:
             self.players[p][0] = [1, 9]
-
-    # def move_player(self, p, amount):
-    #     self.players[p][0] += amount
-    #     self.check_collision(p)
-
-    #def board_generate(self):
-        # generates 1-100 snakes and ladder board with flipping
-        # shame that this is infinitesimally slower than a hardcoded board. still needed this to make the list in the first place though lol
-        # board = []
-        # buffer = []
-        # flip = False
-        #
-        # for row in range(10):
-        #     for i in range(10):
-        #         buffer.append(i + (row * 10) + 1)
-        #     if flip:
-        #         buffer.reverse()
-        #     print(buffer)
-        #     board += buffer
-        #     buffer.clear()
-        #     flip = not flip
-        # return board
-# game = Game(1)
-# print(sys.getsizeof(game.board))
