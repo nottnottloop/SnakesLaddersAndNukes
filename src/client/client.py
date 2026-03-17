@@ -1,10 +1,9 @@
 import pygame
 import random
 import sys
-import network
+import networking
 
 import assets
-import debug
 from constants import *
 from button import Button
 from client_utils import *
@@ -23,7 +22,7 @@ text = font.render("LOADING", True, BLACK)
 blit_centered_text(window, text)
 pygame.display.update()
 
-n = network.Network()
+network = networking.Network()
 
 clock = pygame.time.Clock()
 
@@ -88,17 +87,16 @@ def parse_color(color):
         return YELLOW
 
 SELECT_COLOR_BUTTONS = (
-    Button(window, 'Red', 375, 175, 200, 200, RED, RED, sound=assets.click),
-    Button(window, 'Green', 375, 375, 200, 200, GREEN, GREEN, sound=assets.click),
-    Button(window, 'Blue', 175, 175, 200, 200, BLUE, BLUE, sound=assets.click),
-    Button(window, 'Yellow', 175, 375, 200, 200, YELLOW, YELLOW, sound=assets.click),
+    Button(window, client_state, 'Red', 375, 175, 200, 200, RED, RED, sound=assets.click),
+    Button(window, client_state, 'Green', 375, 375, 200, 200, GREEN, GREEN, sound=assets.click),
+    Button(window, client_state, 'Blue', 175, 175, 200, 200, BLUE, BLUE, sound=assets.click),
+    Button(window, client_state, 'Yellow', 175, 375, 200, 200, YELLOW, YELLOW, sound=assets.click),
 )
 
 MUTE_BUTTON_LOCATION = (600, 590)
 MUTE_BUTTON = (Button(window, client_state, 'Mute', MUTE_BUTTON_LOCATION[0], MUTE_BUTTON_LOCATION[1], 100, 100, WHITE, WHITE, sound=assets.click),)
 UNMUTE_BUTTON = (Button(window, client_state, 'Unmute', MUTE_BUTTON_LOCATION[0], MUTE_BUTTON_LOCATION[1], 100, 100, WHITE, WHITE, sound=assets.click),)
 
-START_GAME_BUTTON = (Button(window, client_state, 'Start Game', 420, 450, 275, 110, BLACK, WHITE, sound=assets.click),)
 START_GAME_BUTTON = (Button(window, client_state, 'Start Game', 420, 450, 275, 110, BLACK, WHITE, sound=assets.click),)
 
 READY_UP_BUTTON = (Button(window, client_state, 'Ready Up', 225, 450, 300, 150, BLACK, WHITE, sound=assets.click),)
@@ -216,10 +214,8 @@ def play_movement_animation(player, offset_nudge, p, game):
         draw_board(game)
         draw_dice(p)
         draw_nuke_buttons(p)
-        if not debug.disable_move_turns:
-            draw_move_icon()
-        if not debug.disable_snakes_and_ladders:
-            draw_snakes_and_ladders()
+        draw_move_icon()
+        draw_snakes_and_ladders()
         for hypothetical_stationary_player in range(1, 5):
             if game.players[hypothetical_stationary_player][1] != None:
                 if hypothetical_stationary_player != player:
@@ -237,11 +233,7 @@ def play_movement_animation(player, offset_nudge, p, game):
         explosion_group.update()
         pygame.display.update()
         if not loop_completed and ticks_passed == 60:
-            # for nuke in (range(len(nuke_cache))):
-            #     if nuke_cache[nuke] == game.players_previous_space[player]:
-            #         nuke_cache[nuke] = [-100, -100]
             cache_nukes(p, game)
-            # game = n.send("get")
             old_x, old_y = game.players_previous_space[player][0], game.players_previous_space[player][1]
             new_x, new_y = game.players[player][0][0], game.players[player][0][1]
             distance_x, distance_y = new_x - old_x, new_y - old_y
@@ -420,10 +412,8 @@ def draw_game_objects(game=None, p=None, player_position_cache=None):
     draw_board(game)
     draw_dice(p)
     draw_nuke_buttons(p)
-    if not debug.disable_move_turns:
-        draw_move_icon()
-    if not debug.disable_snakes_and_ladders:
-        draw_snakes_and_ladders()
+    draw_move_icon()
+    draw_snakes_and_ladders()
     draw_nukes()
     draw_game_pieces(game, p)
     explosion_group.draw(window)
@@ -470,15 +460,12 @@ def redraw_window(game=None, p=None, white=True, update=True):
 def connect():
     redraw_window()
     server_crash = False
-    # if debug:
-    #     p = 1
-    #     main(p)
     font = pygame.font.SysFont("consolas", 80)
     text = font.render("Connecting...", True, BLUE)
     blit_centered_text(window, text)
     pygame.display.update()
     try:
-        p = int(n.get_p())
+        p = int(network.get_p())
     except ValueError:
         print("Server crashed!")
         pygame.quit()
@@ -506,7 +493,7 @@ def main(p):
     while run:
         clock.tick(60)
         try:
-            game = n.send("get")
+            game = network.send("get")
         except Exception as e:
             run = False
             print("Couldn't get game")
@@ -548,67 +535,48 @@ def main(p):
                     NUKE_BUTTON[0].disable()
                 for btn in BUTTONS:
                     if btn.click(pos):
-                        game = n.send(btn.text)
+                        game = network.send(btn.text)
                         print("Clicked:", btn.text)
                         print("Position", game.players[p][0])
                         print("Color:", game.players[p][1])
                         print("Blocked colors", game.blocked_colors)
-            if event.type == pygame.KEYUP and debug.movement and game.started:
-                if event.key == pygame.K_1:
-                    game = n.send("1")
-                    debug_print(p, game)
-                if event.key == pygame.K_2:
-                    game = n.send("2")
-                    debug_print(p, game)
-                if event.key == pygame.K_3:
-                    game = n.send("3")
-                    debug_print(p, game)
-                if event.key == pygame.K_4:
-                    game = n.send("4")
-                    debug_print(p, game)
-                if event.key == pygame.K_5:
-                    game = n.send("5")
-                    debug_print(p, game)
-                if event.key == pygame.K_6:
-                    game = n.send("6")
-                    debug_print(p, game)
-                if event.key == pygame.K_8:
-                    game = n.send("-1")
-                    debug_print(p, game)
-                if event.key == pygame.K_UP:
-                    game = n.send("Up")
-                    debug_print(p, game)
-                if event.key == pygame.K_DOWN:
-                    game = n.send("Down")
-                    debug_print(p, game)
-                if event.key == pygame.K_LEFT:
-                    game = n.send("Left")
-                    debug_print(p, game)
-                if event.key == pygame.K_RIGHT:
-                    game = n.send("Right")
-                    debug_print(p, game)
-                if event.key == pygame.K_h:
-                    game = n.send("killme")
-                    debug_print(p, game)
-        if not debug.printed and not debug.disable_snakes_and_ladders:
-            print("Snake 0 (green loveable snake):", game.snakes[0])
-            print("Snake 1 (cutesy orange snake):", game.snakes[1])
-            print("Snake 2 (long squiggly red snake):", game.snakes[2])
-            print("Snake 3 (the PYTHON snake):", game.snakes[3])
-            print ("Ladder 1", game.ladders[0])
-            print("Ladder 2", game.ladders[1])
-            print("Ladder 3", game.ladders[2])
-            print("Ladder 4", game.ladders[3])
-            for nuke in (range(len(game.nukes))):
-                print("Nuke", nuke,"at", game.nukes[nuke])
-            print("Game id", game.id)
-            print("Player ids connected", game.player_ids_connected)
-        #     # print(game.board)
-        #     print()
-            debug.printed = True
-
-        if debug.debug and game.players[p][4] != True:
-            game = n.send("debug")
+            #if event.type == pygame.KEYUP and debug.movement and game.started:
+            #    if event.key == pygame.K_1:
+            #        game = n.send("1")
+            #        debug_print(p, game)
+            #    if event.key == pygame.K_2:
+            #        game = n.send("2")
+            #        debug_print(p, game)
+            #    if event.key == pygame.K_3:
+            #        game = n.send("3")
+            #        debug_print(p, game)
+            #    if event.key == pygame.K_4:
+            #        game = n.send("4")
+            #        debug_print(p, game)
+            #    if event.key == pygame.K_5:
+            #        game = n.send("5")
+            #        debug_print(p, game)
+            #    if event.key == pygame.K_6:
+            #        game = n.send("6")
+            #        debug_print(p, game)
+            #    if event.key == pygame.K_8:
+            #        game = n.send("-1")
+            #        debug_print(p, game)
+            #    if event.key == pygame.K_UP:
+            #        game = n.send("Up")
+            #        debug_print(p, game)
+            #    if event.key == pygame.K_DOWN:
+            #        game = n.send("Down")
+            #        debug_print(p, game)
+            #    if event.key == pygame.K_LEFT:
+            #        game = n.send("Left")
+            #        debug_print(p, game)
+            #    if event.key == pygame.K_RIGHT:
+            #        game = n.send("Right")
+            #        debug_print(p, game)
+            #    if event.key == pygame.K_h:
+            #        game = n.send("killme")
+            #        debug_print(p, game)
 
         if snakes_gone_down != game.snakes_gone_down:
             if client_state.sound_enabled:
@@ -631,12 +599,10 @@ def main(p):
                     assets.explosion.play()
                 nuke_rendered = True
         check_if_player_moving(game)
-        # main game redraw function
         redraw_window(game=game, p=p)
         cache_nukes(p, game)
         cache_player_positions(game)
         if game.winner != 0:
-            # game = n.send("ending")
             redraw_window(game=game, p=p, update=False)
             draw_winner_window(p, game)
             pygame.display.update()
@@ -684,13 +650,6 @@ def check_if_player_moving(game):
                 players_moving[player] = True
 
 
-def debug_print(p, game):
-    pass
-    # print(game.players[p][0], ' ', end='')
-    # print("Num of nukes", game.players[p][2])
-    # print(game.player_to_move)
-    # print(game.players[game.player_to_move][1], "to move")
-
 def menu_screen():
     global nukes_cached, shake_amount, shake_direction
     init_vars()
@@ -702,32 +661,19 @@ def menu_screen():
     shake_amount = 0
     shake_direction = True
     explosion_easter_egg_counter = 0
-    # title_ticks_passed = 0
     while run:
-        # while title_ticks_passed < 2000:
         clock.tick(60)
-        #     if title_ticks_passed <= 500:
-        #         window.blit(assets.TITLE1, (0, 0))
-        #     if 2000 >= title_ticks_passed > 500:
-        #         window.blit(assets.TITLE2, (0, 0))
-        #     pygame.display.update()
-        #     title_ticks_passed += 1
         window.blit(assets.TITLE3, (0, 0))
-        # font = pygame.font.SysFont("consolas", 60)
-        # text = font.render("Click to Play!", True, RED)
         START_GAME_BUTTON[0].draw()
         START_GAME_BUTTON[0].enable()
         if client_state.sound_enabled:
-            # MUTE_BUTTON[0].draw()
             window.blit(assets.UNMUTED, MUTE_BUTTON_LOCATION)
             MUTE_BUTTON[0].enable()
         else:
-            # UNMUTE_BUTTON[0].draw()
             window.blit(assets.MUTED, MUTE_BUTTON_LOCATION)
             UNMUTE_BUTTON[0].enable()
         explosion_group.draw(window)
         explosion_group.update()
-        # blit_centered_text(text)
         pygame.display.update()
 
         for event in pygame.event.get():
@@ -740,10 +686,9 @@ def menu_screen():
                 if MUTE_BUTTON[0].click(pos) or UNMUTE_BUTTON[0].click(pos):
                     client_state.sound_enabled = not client_state.sound_enabled
                 explosion_easter_egg_counter += 1
-                if explosion_easter_egg_counter > 50:
+                if explosion_easter_egg_counter > 10:
                     explosion = Explosion(WIDTH/2, HEIGHT/2)
                     explosion_group.add(explosion)
-
     connect()
 
 
@@ -757,10 +702,4 @@ def failed_to_connect():
     menu_screen()
 
 
-while True:
-    # DEBUG CODE
-    # draw_game_objects()
-    if not debug.debug:
-        menu_screen()
-    else:
-        connect()
+menu_screen()

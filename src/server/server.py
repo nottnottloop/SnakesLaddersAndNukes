@@ -3,7 +3,6 @@ from threading import Thread
 import pickle
 import debug
 import configparser
-import sys
 
 from game import Game
 config = configparser.ConfigParser()
@@ -39,7 +38,6 @@ def start_new_threaded_client(player_id, unique_game_id):
 def threaded_client(conn, p, local_game_id, id_count, addr):
     global total_id_count
 
-    reply = ""
     game = games[local_game_id]
     while True:
         try:
@@ -84,11 +82,9 @@ def threaded_client(conn, p, local_game_id, id_count, addr):
 
 def close_game_if_empty(game_id):
     global games
-    if games[game_id].num_of_players == 0 and games[game_id].started:
+    if games[game_id].num_of_players == 0:
         print("Closing game", game_id)
         del games[game_id]
-    else:
-        print("Not closing game")
 
 def start_new_game(game_id):
     games[game_id] = Game(game_id)

@@ -8,14 +8,14 @@
 			"name": "Client",
 			"type": "debugpy",
 			"request": "launch",
-			"program": "src/client.py",
+			"program": "src/client/client.py",
 			"console": "integratedTerminal"
 		},
 		{
 			"name": "Server",
 			"type": "debugpy",
 			"request": "launch",
-			"program": "src/server.py",
+			"program": "src/server/server.py",
 			"console": "integratedTerminal"
 		},
 	]
