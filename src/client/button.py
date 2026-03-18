@@ -39,3 +39,12 @@ class Button:
             return True
         else:
             return False
+    
+    def enable(self):
+        self.enabled = True
+
+    def disable(self):
+        self.enabled = False
+
+    def toggle(self):
+        self.enabled = not self.enabled

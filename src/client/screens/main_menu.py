@@ -7,7 +7,7 @@ from ..constants import *
 from ...shared.game import Game
 
 class MenuScreen(ScreenStateInterface):
-    def __init__(self, window: pygame.surface.Surface, state: Game):
+    def __init__(self, window: pygame.surface.Surface, state: ClientState):
         self.window = window
         self.state = state
         self.explosion_easter_egg_counter = 0
@@ -20,7 +20,7 @@ class MenuScreen(ScreenStateInterface):
         if event.type == pygame.MOUSEBUTTONUP:
             pos = pygame.mouse.get_pos()
             if self.buttons["start_game_button"].click(pos):
-                pass
+                pygame.event.post(pygame.event.Event(CHANGE_STATE, {"state": "player_select"}))
             if self.buttons["mute_button"].click(pos):
                 self.state.sound_enabled = not self.state.sound_enabled
                 if self.state.sound_enabled:

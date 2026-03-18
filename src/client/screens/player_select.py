@@ -8,68 +8,67 @@ from ..networking import Network
 from ...shared.game import Game
 
 class PlayerSelectScreen(ScreenStateInterface):
-    def __init__(self, window: pygame.surface.Surface, state: Game):
+    def __init__(self, window: pygame.surface.Surface, state: ClientState):
         self.window = window
         self.state = state
-        self.select_color_buttons = {
+        self.game: Game = None
+        self.buttons = {
             "red": Button(window, state, 'Red', 375, 175, 200, 200, RED, RED, sound=assets.click),
             "green": Button(window, state, 'Green', 375, 375, 200, 200, GREEN, GREEN, sound=assets.click),
             "blue": Button(window, state, 'Blue', 175, 175, 200, 200, BLUE, BLUE, sound=assets.click),
             "yellow": Button(window, state, 'Yellow', 175, 375, 200, 200, YELLOW, YELLOW, sound=assets.click),
             "ready_up_button": Button(window, state, 'Ready Up', 225, 450, 300, 150, BLACK, WHITE, sound=assets.click),
         }
-        self.draw()
-        server_crash = False
-        font = pygame.font.SysFont("consolas", 80)
-        text = font.render("Connecting...", True, BLUE)
-        blit_centered_text(self.window, text)
-        pygame.display.update()
-        try:
-            p = int(self.network.get_p())
-        except ValueError:
-            print("Server crashed!")
-            pygame.quit()
-            server_crash = True
-        except TypeError as e:
-            print("Could not connect!")
-            print(e)
-            self.failed_to_connect()
+        self.fonts = {
+            25: pygame.font.SysFont("consolas", 25),
+            40: pygame.font.SysFont("consolas", 40),
+            50: pygame.font.SysFont("consolas", 50),
+            60: pygame.font.SysFont("consolas", 60),
+            80: pygame.font.SysFont("consolas", 80),
+        }
+        self.text = self.fonts[80].render("Connecting...", True, BLUE)
+        blit_centered_text(self.window, self.text)
 
-        if not server_crash:
-            print("You are player", p)
-            self.main(p)
+    def handle_event(self, event):
+        pass
 
-    def draw(p=None, white=True, update=True):
-        if white == True:
-            draw_bg(self.window, self.state)
-        if state.game and p != None:
-            if state.game.started == True:
-                draw_game_objects(p)
-            # if player has not chosen color yet
-            check_and_ask_for_color(p)
-            check_and_display_waiting_for_players(p)
-        if update:
-            pygame.display.update()
+    def update(self, dt):
+        if not self.state.connected:
+            try:
+                self.state.network.connect()
+                self.game = self.state.network.send("get")
+            except ValueError:
+                print("Server crashed!")
+            except TypeError as e:
+                print("Could not connect!")
+                print(e)
+                self.failed_to_connect()
+            finally:
+                self.state.player_id = self.game.num_of_players
+                print("You are player", self.state.player_id)
+    
+    def draw(self):
+        draw_bg(self.window, self.state)
+        self.check_and_ask_for_color(self.state.player_id)
+        self.check_and_display_waiting_for_players(self.state.player_id)
+
 
     def check_and_display_waiting_for_players(self, p):
         # checks if color selection has been made. if it has been made, display waiting for players
-        if not self.state.game.started and self.state.game.players[p][1] != None:
-            font = pygame.font.SysFont("consolas", 25)
-            text = font.render("Lobby: " + str(self.state.game.id), True, BLACK)
+        if not self.game.started and self.game.players[p][1] != None:
+            text = self.fonts[25].render("Lobby: " + str(self.self.game.id), True, BLACK)
             self.window.blit(text, (10, 10))
-            text = font.render("Player: " + str(p), True, BLACK)
+            text = self.fonts[25].render("Player: " + str(p), True, BLACK)
             self.window.blit(text, (10, 40))
-            text = font.render(self.state.game.players[p][1], True, parse_color(self.state.game.players[p][1]))
+            text = self.fonts[25].render(self.self.game.players[p][1], True, parse_color(self.self.game.players[p][1]))
             self.window.blit(text, (10, 70))
-            font = pygame.font.SysFont("consolas", 40)
-            text = font.render("Players in Lobby: (" + str(self.state.game.num_of_players) + "/4)", True, BLACK)
+            text = self.fonts[40].render("Players in Lobby: (" + str(self.self.game.num_of_players) + "/4)", True, BLACK)
             blit_centered_text(self.window, text, -220)
-            if self.state.game.num_of_players < 4:
-                font = pygame.font.SysFont("consolas", 50)
-                text = font.render("Waiting for Players...", True, BLUE)
+            if self.game.num_of_players < 4:
+                text = self.fonts[50].render("Waiting for Players...", True, BLUE)
                 blit_centered_text(self.window, text, -50)
-            if self.state.game.num_of_players >= 2:
-                if self.state.game.players[p][3] == True:
+            if self.game.num_of_players >= 2:
+                if self.game.players[p][3] == True:
                     self.buttons["ready_up_button"].disable()
                 else:
                     self.buttons["ready_up_button"].draw()
@@ -77,24 +76,22 @@ class PlayerSelectScreen(ScreenStateInterface):
 
 
     def check_and_ask_for_color(self, p):
-        if self.state.game.players[p][1] == None:
-            font = pygame.font.SysFont("consolas", 50)
-            text = font.render("Choose your colour!", True, BLACK)
+        if self.game.players[p][1] == None:
+            text = self.fonts[50].render("Choose your colour!", True, BLACK)
             blit_centered_text(self.window, text, -300)
-            for btn in self.select_color_buttons.values():
-                if btn.text in self.state.game.blocked_colors:
+            for btn in self.buttons.values():
+                if btn.text in self.game.blocked_colors:
                     btn.disable()
                 else:
                     btn.draw()
                     btn.enable()
         else:
-            for btn in self.select_color_buttons.values():
+            for btn in self.buttons.values():
                 btn.disable()
 
     def failed_to_connect(self):
         self.redraw_window()
-        font = pygame.font.SysFont("consolas", 60)
-        text = font.render("Failed to connect! :(", True, BLACK)
+        text = self.fonts[60].render("Failed to connect! :(", True, BLACK)
         blit_centered_text(self.window, text)
         pygame.display.update()
         pygame.time.delay(1500)

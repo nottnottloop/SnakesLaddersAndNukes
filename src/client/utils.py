@@ -25,8 +25,10 @@ class ClientState():
     def __init__(self):
         self.game: Game = None
         self.screen_state: ScreenStateInterface
-        self.network = Network()
         self.clock = pygame.time.Clock()
+        self.network = Network()
+        self.connected = False
+        self.player_id = None
 
         self.music_degraded = 0
         self.sound_enabled = True

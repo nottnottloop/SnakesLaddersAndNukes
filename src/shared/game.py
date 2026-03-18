@@ -1,5 +1,5 @@
 import random
-import src.shared.debug as debug
+from ..shared.debug import debug_flags
 
 class Game:
     board = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
@@ -21,7 +21,7 @@ class Game:
             else:
                 coord_board[c][r] = 1 + (9 - c) + (r * 10)
 
-    def __init__(self, id):
+    def __init__(self, game_id):
         self.player_to_move = 1
         self.dice_pips = random.randint(1, 6)
         self.num_of_players = 0
@@ -32,7 +32,7 @@ class Game:
         self.player_travelled_on_movable = [None]
 
         self.blocked_colors = []
-        self.id = id
+        self.game_id = game_id
         self.player_ids_connected = []
 
         self.winner = 0
@@ -71,11 +71,10 @@ class Game:
             self.player_travelled_on_movable.append(False)
         self.started = False
         self.nukes = []
-        if not debug.disable_snakes_and_ladders:
-            self.snakes = []
-            self.ladders = []
-            self.generate_objects()
-            # self.debug_mode_activated = False
+        #if not debug.disable_snakes_and_ladders:
+        #    self.snakes = []
+        #    self.ladders = []
+        #    self.generate_objects()
 
     def convert_position_to_board(self, position):
         return self.board[position]
@@ -205,7 +204,7 @@ class Game:
 
     def move_player(self, p, amount):
         self.nuke_used = False
-        if self.player_to_move == p or debug.disable_move_turns:
+        if self.player_to_move == p or debug_flags.get("disable_move_turns"):
             checking_for_win = False
             initial_x, initial_y = self.players[p][0][0], self.players[p][0][1]
             if self.players[p][0][1] == 9 and self.players[p][0][0] <= 6:
@@ -239,7 +238,7 @@ class Game:
             else:
                 self.players[p][0][0] += amount
             self.check_collision(p, nukes = True)
-            if not debug.disable_snakes_and_ladders:
+            if not debug_flags.get("disable_snakes_and_ladders"):
                 self.check_collision(p)
             self.next_player_to_move()
 
@@ -337,7 +336,7 @@ class Game:
     # this function originally sent everyone but the nuking player back to the start
     def player_uses_nuke(self, p):
         self.players[p][2] -= 1
-        if not debug.disable_nuke_movement:
+        if not debug_flags.get("disable_nuke_movement"):
             for player in range(1, 5):
                 if not self.players[player][5]:
                     self.players[player][0] = [random.randint(0, 9), random.randint(0, 8)]
@@ -398,16 +397,17 @@ class Game:
         self.players[p][1] = color
         self.blocked_colors.append(color)
 
-    def new_player(self, p, id_count = None, debug = False):
+    #def new_player(self, debug = False):
+    def new_player(self):
         # 0: position. 1: color. 2: num of nukes. 3: ready to play or not. 4: debug on
         self.num_of_players += 1
-        self.players[p] = [[0, 0], None, 0, False, debug, False]
-        self.debug_give_stuff(p)
-        self.player_ids_connected.append(id_count)
-        if debug:
-            self.activate_debug(p)
+        self.players.append([[0, 0], None, 0, False, False, False])
+        return self.num_of_players
+        #self.debug_give_stuff(p)
+        #if debug:
+        #    self.activate_debug(p)
 
-    def player_lost_connection(self, p, id_count):
+    def player_lost_connection(self, p):
         if self.players[p][1] != None:
             self.blocked_colors.remove(self.players[p][1])
         self.num_of_players -= 1
@@ -421,7 +421,7 @@ class Game:
         if self.num_of_players > 0:
             if self.player_to_move == p:
                 self.next_player_to_move()
-        del self.player_ids_connected[self.player_ids_connected.index(id_count)]
+        #del self.player_ids_connected[self.player_ids_connected.index(id_count)]
         if self.started and self.num_of_players == 1 and not self.winner_set:
             self.player_win(self.player_to_move)
 
@@ -446,7 +446,7 @@ class Game:
         self.player_ready_up(p)
 
     def debug_give_stuff(self, p):
-        if debug.let_there_be_nukes:
+        if debug_flags.get("let_there_be_nukes"):
             self.players[p][2] = 100
-        if debug.i_just_want_to_win:
+        if debug_flags.get("i_just_want_to_win"):
             self.players[p][0] = [1, 9]

@@ -1,5 +1,9 @@
+import pygame
+
 WIDTH = 750
 HEIGHT = 750
+
+CHANGE_STATE = pygame.USEREVENT + 1
 
 SQUARE_SIZE = 51
 BOARD_START_X = 117
@@ -11,4 +15,3 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 YELLOW = (252, 226, 5)
-
