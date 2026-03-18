@@ -3,6 +3,7 @@ import pygame
 from . import load_assets as assets
 from .utils import *
 from .constants import *
+from src.shared.constants import *
 
 from .screens.main_menu import MenuScreen
 from .screens.player_select import PlayerSelectScreen
@@ -22,7 +23,7 @@ screen_states = {
 }
 state.screen_state = screen_states["menu_screen"]
 
-window.fill(WHITE)
+window.fill(WHITE.color)
 pygame.display.flip()
 
 running = True

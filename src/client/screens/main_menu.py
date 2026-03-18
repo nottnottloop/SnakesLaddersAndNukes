@@ -3,8 +3,7 @@ from .. import load_assets as assets
 from ..button import Button
 from ..explosion import Explosion
 from ..utils import *
-from ..constants import *
-from ...shared.game import Game
+from src.shared.constants import *
 
 class MenuScreen(ScreenStateInterface):
     def __init__(self, window: pygame.surface.Surface, state: ClientState):
@@ -12,8 +11,8 @@ class MenuScreen(ScreenStateInterface):
         self.state = state
         self.explosion_easter_egg_counter = 0
         self.buttons = {
-            "mute_button": Button(window, state, 'Mute', 600, 590, 100, 100, WHITE, WHITE, image=assets.UNMUTED),
-            "start_game_button": Button(window, state, 'Start Game', 420, 450, 275, 110, BLACK, WHITE, sound=assets.click),
+            "mute_button": Button(window, state, 'Mute', 600, 590, 100, 100, WHITE.color, WHITE.color, image=assets.UNMUTED),
+            "start_game_button": Button(window, state, 'Start Game', 420, 450, 275, 110, BLACK.color, WHITE.color, sound=assets.click),
         }
 
     def handle_event(self, event):

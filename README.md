@@ -5,7 +5,7 @@ A server-client game of Snakes and Ladders with the distinction that there are a
 
 The game progressively gets more dystopic and scary as more nukes are used, because in nuclear war, there are no winners ヾ(≧▽≦*)o
 
-Before playing, copy the `gameconfig.ini` from the `serverconfigs` directory to the root directory, and change the config IP address accordingly (IPV6). 
+Before playing, copy the `gameconfig.ini` from the `serverconfigs` directory to the root directory, and change the config IP address accordingly. 
 
 After that to play run the client: `python3 src.client.client` or `py src.client.client` on Windows
 

@@ -1,5 +1,15 @@
 import random
 from ..shared.debug import debug_flags
+from ..shared.constants import *
+
+class Player:
+    def __init__(self, player_id):
+        self.player_id = player_id
+        self.position = {"x": 0, "y": 0}
+        self.color: Color | None = None
+        self.nukes = 0
+        self.ready = False
+        self.debug = False
 
 class Game:
     board = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
@@ -24,20 +34,18 @@ class Game:
     def __init__(self, game_id):
         self.player_to_move = 1
         self.dice_pips = random.randint(1, 6)
-        self.num_of_players = 0
         self.ready_count = 0
-        self.players = [None]
+        self.players: list[int, Player] = []
 
-        self.players_previous_space = [None]
-        self.player_travelled_on_movable = [None]
+        self.players_previous_space = []
+        self.player_travelled_on_movable = []
 
-        self.blocked_colors = []
         self.game_id = game_id
         self.player_ids_connected = []
 
+        self.started = False
         self.winner = 0
         self.winner_set = False
-        self.game_ended = False
 
         self.time_to_move = 120
         self.nuke_used = False
@@ -50,32 +58,24 @@ class Game:
         self.snakes_and_ladders_degraded = 0
         self.piece_shake = 0
 
-        self.nukes_acquired = [None, 0, 0, 0, 0]
-        self.snakes_gone_down = 0
-        self.ladders_gone_up = 0
-        self.num_nukes_used = 0
-
         self.min_num_of_nukes = 5
         self.max_num_of_nukes = 15
 
         # self.min_num_of_nukes = 98
         # self.max_num_of_nukes = 98
 
-        # 0: position, 1: color, 2: num of nukes, 3: ready or not, 4: debug mode, 5: new player
-        self.INITAL_PLAYER_STARTING_STATE = [[-10, 20], None, 0, False, False, True]
-        for i in range(4):
-            self.players.append(self.INITAL_PLAYER_STARTING_STATE)
-        for i in range(4):
-            self.players_previous_space.append([0, 0])
-        for i in range(4):
-            self.player_travelled_on_movable.append(False)
-        self.started = False
-        self.nukes = []
-        #if not debug.disable_snakes_and_ladders:
-        #    self.snakes = []
-        #    self.ladders = []
-        #    self.generate_objects()
+    @property
+    def taken_colors(self) -> set[str]:
+        return {p.color for p in self.players if p.color is not None}
 
+    # Lobby screen
+    def add_new_player(self, player_id):
+        self.players.append(Player(player_id))
+
+    def set_player_color(self, player_id, color):
+        self.players[player_id].color = color
+
+    # Gameplay
     def convert_position_to_board(self, position):
         return self.board[position]
 
@@ -254,19 +254,7 @@ class Game:
 
     def roll_dice(self, p = None):
         self.dice_pips = random.randint(1,6)
-        # if p != None:
-        #     pre_move_position = self.players[p][0]
-        #     if pre_move_position + self.dice_pips > 98:
-        #         if self.players[p][0] == 99:
-        #             self.player_win(p)
-        #         else:
-        #             spaces_to_win = 99 - pre_move_position
-        #             spaces_to_move_back = self.dice_pips - spaces_to_win
-        #             self.players[p][0] = pre_move_position + spaces_to_win - spaces_to_move_back
-        #             self.check_collision(p)
-        #     else:
         self.move_player(p, self.dice_pips)
-        # self.players[p][0][0] += self.dice_pips
 
     def calculate_destination_position(self, start_pos, vector):
         start_x, start_y = start_pos[0], start_pos[1]
@@ -307,31 +295,10 @@ class Game:
     def player_collect_nuke(self, p, nuke_index):
         self.players[p][2] += 1
         self.nukes[nuke_index] = [-100, -100]
-        # del self.nukes[nuke_index]
-
-    # for i in range(2):
-       #     for j in range(4):
-       #         if i == 0:
-       #             if self.players[p][0] == self.snakes[j][0]:
-       #                 self.player_collide(p, self.snakes[j][1], i)
-       #         else:
-       #             if self.players[p][0] == self.ladders[j][0]:
-       #                 self.player_collide(p, self.ladders[j][1], i)
 
     def player_win(self, p):
         self.winner = p
         self.winner_set = True
-
-        #old code version
-        # genuine_win = False
-        # for player in range(1, 5):
-        #     if self.players[player][0] == [0, 9]:
-        #         self.winner = p
-        #         genuine_win = True
-        #         self.winner_set = True
-        # if not genuine_win:
-        #     self.winner = self.player_to_move
-
 
     # this function originally sent everyone but the nuking player back to the start
     def player_uses_nuke(self, p):
@@ -391,21 +358,6 @@ class Game:
                 else:
                     self.degraded_nuke_text += 1
                     degrade_tokens -= 1
-        # self.nuke_used = False
-
-    def set_color(self, p, color):
-        self.players[p][1] = color
-        self.blocked_colors.append(color)
-
-    #def new_player(self, debug = False):
-    def new_player(self):
-        # 0: position. 1: color. 2: num of nukes. 3: ready to play or not. 4: debug on
-        self.num_of_players += 1
-        self.players.append([[0, 0], None, 0, False, False, False])
-        return self.num_of_players
-        #self.debug_give_stuff(p)
-        #if debug:
-        #    self.activate_debug(p)
 
     def player_lost_connection(self, p):
         if self.players[p][1] != None:

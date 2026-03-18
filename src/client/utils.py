@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 
 from ..shared.game import Game
 from .constants import *
+from src.shared.constants import *
 from .networking import Network
 
 class ScreenStateInterface(ABC):
@@ -56,19 +57,9 @@ class ClientState():
 def blit_centered_text(window, text, y_offset=0):
     window.blit(text, (WIDTH / 2 - text.get_width() / 2, HEIGHT / 2 - text.get_height() / 2 + y_offset))
 
-def parse_color(color):
-    if color == "Red":
-        return RED
-    if color == "Green":
-        return GREEN
-    if color == "Blue":
-        return BLUE
-    if color == "Yellow":
-        return YELLOW
-
 def draw_bg(window, state):
     if state.game == None or state.game.discoloration == 0:
-        window.fill(WHITE)
+        window.fill(WHITE.color)
     if state.game != None:
         if state.game.discoloration == 1:
             window.fill((192, 192, 192))
