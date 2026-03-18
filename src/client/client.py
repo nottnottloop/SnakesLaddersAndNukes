@@ -31,6 +31,7 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         elif event.type == CHANGE_STATE:
+            screen_states[event.state].__init__(window, state)
             state.screen_state = screen_states[event.state]
         else:
             state.screen_state.handle_event(event)

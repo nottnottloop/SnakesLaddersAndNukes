@@ -15,9 +15,8 @@ class Network:
     def connect(self):
         try:
             self.client.connect(self.addr)
-            return self.client.recv(4096).decode()
-        except:
-            print("Network error!")
+        except Exception as e:
+            raise e
 
     def disconnect(self):
         self.client.close(self.addr)
