@@ -2,10 +2,9 @@
 # to enable debugging features, uncomment the last line in each section
 #
 
-debug_flags = {
-    # this throws you into a game without the menu
+DEBUG_FLAGS = {
     "debug": False,
-    # debug = True
+    "debug": True,
 
     # debug movement commands
     #movement = False

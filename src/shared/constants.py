@@ -9,3 +9,12 @@ RED = Color("Red", (255, 0, 0))
 BLUE = Color("Blue", (0, 0, 255))
 GREEN = Color("Green", (0, 255, 0))
 YELLOW = Color("Yellow", (252, 226, 5))
+
+COLOR_MAP = {
+    "Red": RED,
+    "Blue": BLUE,
+    "Green": GREEN,
+    "Yellow": YELLOW,
+}
+
+Position = namedtuple("Position", ["x", "y"])
