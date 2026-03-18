@@ -3,7 +3,7 @@ from .constants import *
 from .utils import ClientState
 
 class Button:
-    def __init__(self, window, state: ClientState, text, x, y, width, height, color, text_color=BLACK, enabled=True, border_radius=-1, sound=None, image=None, callback=lambda *args, **kwargs: None):
+    def __init__(self, window, state: ClientState, text, x, y, width, height, color, text_color=BLACK, enabled=True, visible=True, border_radius=-1, sound=None, image=None, callback=lambda *args, **kwargs: None):
         self.window = window
         self.state = state
         self.text = text
@@ -14,12 +14,15 @@ class Button:
         self.color = color
         self.text_color = text_color
         self.enabled = enabled
+        self.visible = visible
         self.border_radius = border_radius
         self.sound = sound
         self.image = image
         self.callback = callback
 
     def draw(self):
+        if not self.visible:
+            return
         if self.image:
             self.window.blit(self.image, (self.x, self.y))
         else:

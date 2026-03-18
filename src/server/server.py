@@ -23,8 +23,8 @@ print(f"Hosting server on {host} on {port}")
 print("Waiting for a connection, Server Started")
 
 games = {}
-game_id_count = 0
-player_id_count = 0
+game_id_count = 1
+player_id_count = 1
 
 def start_new_threaded_client(player_id, game_id):
     p = games[game_id].new_player()
@@ -89,7 +89,7 @@ while True:
     game_found = False
 
     if games:
-        for game_id, game in games:
+        for game_id, game in games.items():
             if game.started:
                 continue
             if game.num_of_players < 4:

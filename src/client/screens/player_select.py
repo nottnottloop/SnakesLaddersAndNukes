@@ -12,13 +12,16 @@ class PlayerSelectScreen(ScreenStateInterface):
         self.window = window
         self.state = state
         self.game: Game = None
-        self.buttons = {
+        self.color_buttons = {
             "red": Button(window, state, 'Red', 375, 175, 200, 200, RED, RED, sound=assets.click),
             "green": Button(window, state, 'Green', 375, 375, 200, 200, GREEN, GREEN, sound=assets.click),
             "blue": Button(window, state, 'Blue', 175, 175, 200, 200, BLUE, BLUE, sound=assets.click),
             "yellow": Button(window, state, 'Yellow', 175, 375, 200, 200, YELLOW, YELLOW, sound=assets.click),
-            "ready_up_button": Button(window, state, 'Ready Up', 225, 450, 300, 150, BLACK, WHITE, sound=assets.click),
         }
+        self.lobby_buttons = {
+            "ready_up_button": Button(window, state, 'Ready Up', 225, 450, 300, 150, BLACK, WHITE, sound=assets.click, enabled=False, visible=False),
+        }
+        self.active_buttons = self.color_buttons
         self.fonts = {
             25: pygame.font.SysFont("consolas", 25),
             40: pygame.font.SysFont("consolas", 40),
@@ -33,7 +36,7 @@ class PlayerSelectScreen(ScreenStateInterface):
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONUP and self.state.connected:
             pos = pygame.mouse.get_pos()
-            for btn in self.buttons.values():
+            for btn in self.active_buttons.values():
                 if btn.click(pos):
                     game = self.state.network.send(btn.text)
                     print("Clicked:", btn.text)
@@ -54,49 +57,48 @@ class PlayerSelectScreen(ScreenStateInterface):
                 self.state.connected = True
                 self.state.player_id = self.game.num_of_players
                 print("You are player", self.state.player_id)
+        self.game = self.state.network.send("get")
     
     def draw(self):
         draw_bg(self.window, self.state)
         if self.connection_failed:
             self.draw_connection_failed()
         else:
-            self.check_and_ask_for_color(self.state.player_id)
-            self.check_and_display_waiting_for_players(self.state.player_id)
+            if self.game.players[self.state.player_id][1] == None:
+                self.draw_ask_for_color()
+            else:
+                self.draw_waiting_for_players()
 
-    def check_and_ask_for_color(self):
-        if self.game.players[self.state.player_id][1] == None:
-            text = self.fonts[50].render("Choose your colour!", True, BLACK)
-            blit_centered_text(self.window, text, -300)
-            for btn in self.buttons.values():
-                if btn.text in self.game.blocked_colors:
-                    btn.disable()
-                else:
-                    btn.draw()
-                    btn.enable()
-        else:
-            for btn in self.buttons.values():
+    def draw_ask_for_color(self):
+        self.active_buttons = self.color_buttons
+        text = self.fonts[50].render("Choose your colour!", True, BLACK)
+        blit_centered_text(self.window, text, -300)
+        for btn in self.color_buttons.values():
+            if btn.text in self.game.blocked_colors:
                 btn.disable()
+            else:
+                btn.draw()
 
-    def check_and_display_waiting_for_players(self):
-        # checks if color selection has been made. if it has been made, display waiting for players
-        if not self.game.started and self.game.players[self.state.player_id][1] != None:
-            text = self.fonts[25].render("Lobby: " + str(self.self.game.id), True, BLACK)
+    def draw_waiting_for_players(self):
+        self.active_buttons = self.lobby_buttons
+        if not self.game.started:
+            text = self.fonts[25].render("Lobby: " + str(self.game.game_id), True, BLACK)
             self.window.blit(text, (10, 10))
-            text = self.fonts[25].render("Player: " + str(p), True, BLACK)
+            text = self.fonts[25].render("Player: " + str(self.state.player_id), True, BLACK)
             self.window.blit(text, (10, 40))
-            text = self.fonts[25].render(self.self.game.players[self.state.player_id][1], True, parse_color(self.self.game.players[self.state.player_id][1]))
+            text = self.fonts[25].render(self.game.players[self.state.player_id][1], True, parse_color(self.game.players[self.state.player_id][1]))
             self.window.blit(text, (10, 70))
-            text = self.fonts[40].render("Players in Lobby: (" + str(self.self.game.num_of_players) + "/4)", True, BLACK)
+            text = self.fonts[40].render("Players in Lobby: (" + str(self.game.num_of_players) + "/4)", True, BLACK)
             blit_centered_text(self.window, text, -220)
             if self.game.num_of_players < 4:
-                text = self.fonts[50].render("Waiting for Players...", True, BLUE)
-                blit_centered_text(self.window, text, -50)
+                text = self.fonts[50].render("Waiting for Players...", True, parse_color(self.game.players[self.state.player_id][1]))
+                blit_centered_text(self.window, text, 25)
             if self.game.num_of_players >= 2:
-                if self.game.players[p][3] == True:
-                    self.buttons["ready_up_button"].disable()
+                if self.game.players[self.state.player_id][3] == True:
+                    self.lobby_buttons["ready_up_button"].disable()
                 else:
-                    self.buttons["ready_up_button"].draw()
-                    self.buttons["ready_up_button"].enable()
+                    self.lobby_buttons["ready_up_button"].draw()
+                    self.lobby_buttons["ready_up_button"].enable()
 
 
     def update_connection_failed(self, e):
