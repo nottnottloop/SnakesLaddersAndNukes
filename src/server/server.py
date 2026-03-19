@@ -53,7 +53,7 @@ def threaded_client(conn, addr, player_id, game_id):
                 elif data == "roll":
                     game.roll_dice(player)
                 elif data == "NUKE":
-                    game.player_uses_nuke(player)
+                    game.nuke(player)
                 # Debug
                 elif data == "debug":
                     game.activate_debug(player)

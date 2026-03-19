@@ -13,7 +13,7 @@ class Player:
     
     @property
     def board_number(self):
-        return POSITION_TO_NUMBER[self.position]
+        return POSITION_TO_BOARD_NUMBER[self.position]
     
 class Movable:
     def __init__(self, position, vector, sprite):
@@ -69,7 +69,7 @@ class Game:
     def add_new_player(self, player_id):
         self.players[player_id] = Player(player_id)
 
-    def set_player_color(self, player: Player, color):
+    def set_player_color(self, player: Player, color: str):
         player.color = COLOR_MAP[color]
 
     def player_lost_connection(self, player: Player):
@@ -119,6 +119,19 @@ class Game:
                 if possible_position == (0, 0) or possible_position == (0, 9) or possible_position in self.nukes:
                     continue
                 self.nukes.append(possible_position)
+    
+    def potentially_collect_nuke(self, player:Player):
+        for i, nuke_position in enumerate(self.nukes):
+            if player.position == nuke_position:
+                player.nukes += 1
+                del self.nukes[i]
+
+    def check_player_iteraction(self, player: Player):
+        self.potentially_collect_nuke(player)
+        for movable in self.movables:
+            if player.position == movable.position:
+                player.position = self.calculate_destination_position(player.position, movable.vector)
+        self.potentially_collect_nuke(player)
 
     def roll_dice(self, player: Player):
         if not self.player_to_move == player:
@@ -128,44 +141,15 @@ class Game:
         if destination_number > 100:
             destination_number = 100 - (destination_number - 100)
         player.position = BOARD_NUMBER_TO_POSITION[destination_number]
+        self.check_player_iteraction(player)
 
-    def player_collide(self, p, vector):
-        player_x, player_y = self.calculate_destination_position(self.players[p][0], vector)
-        self.players[p][0] = [player_x, player_y]
-        self.check_collision(p, nukes=True)
-
-    def check_collision(self, p, nukes = False):
-        self.player_travelled_on_movable[p] = False
-        if not nukes:
-            for snake in range(len(self.snakes)):
-                if self.players[p][0] == self.snakes[snake][0]:
-                    self.players_previous_space[p] = self.snakes[snake][0]
-                    self.snakes_gone_down += 1
-                    self.player_collide(p, self.snakes[snake][1])
-                    self.player_travelled_on_movable[p] = True
-                    break
-            for ladder in range(len(self.ladders)):
-                if self.players[p][0] == self.ladders[ladder][0]:
-                    self.players_previous_space[p] = self.ladders[ladder][0]
-                    self.ladders_gone_up += 1
-                    self.player_collide(p, self.ladders[ladder][1])
-                    self.player_travelled_on_movable[p] = True
-                    break
-        else:
-            for nuke in range(len(self.nukes)):
-                if tuple(self.players[p][0]) == self.nukes[nuke]:
-                    self.nukes_acquired[p] += 1
-                    self.player_collect_nuke(p, nuke)
-                    break
-
-    def player_uses_nuke(self, player: Player):
+    def nuke(self, player: Player):
         player.nukes -= 1
         self.nuke_used_this_game = True
         self.degrade()
         for player in self.players:
-            self.players[player][0] = [random.randint(0, 9), random.randint(0, 8)]
-            self.check_collision(player)
-            self.check_collision(player, nukes = True)
+            player.position = (random.randint(0, 9), random.randint(0, 8))
+            self.check_player_iteraction(player)
 
     def degrade(self):
         tokens = 1
@@ -209,26 +193,17 @@ class Game:
                 tokens -= 1
 
     # Debug code
-    def activate_debug(self, p):
-        debug_color = ""
-        if p == 1:
-            debug_color = "Red"
-        if p == 2:
-            debug_color = "Green"
-        if p == 3:
-            debug_color = "Blue"
-        if p == 4:
-            debug_color = "Yellow"
-        self.set_color(p, debug_color)
-        self.player_ready_up(p)
+    def activate_debug(self, player: Player):
+        self.set_player_color(player, "Red")
+        player.ready = True
 
-    def debug_give_stuff(self, p):
+    def debug_give_stuff(self, player: Player):
         if DEBUG_FLAGS.get("let_there_be_nukes"):
-            self.players[p][2] = 100
+            player.nukes = 100
         if DEBUG_FLAGS.get("i_just_want_to_win"):
-            self.players[p][0] = [1, 9]
+            player.position = (1, 9)
 
-    def debug_move(self, player, direction):
+    def debug_move(self, player: Player, direction):
         if direction == "Up":
             player.y += 1
         if direction == "Down":
@@ -237,3 +212,4 @@ class Game:
             player.x -= 1
         if direction == "Right":
             player.x += 1
+        self.check_player_iteraction(player)
