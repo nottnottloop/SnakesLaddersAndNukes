@@ -11,6 +11,10 @@ class Player:
         self.ready = False
         self.debug = False
     
+    @property
+    def board_number(self):
+        return POSITION_TO_NUMBER[self.position]
+    
 class Movable:
     def __init__(self, position, vector, sprite):
         self.position: Position = position
@@ -22,17 +26,6 @@ class Nuke:
         self.position: Position = position
 
 class Game:
-    board = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-             20, 19, 18, 17, 16, 15, 14, 13, 12, 11,
-             21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
-             40, 39, 38, 37, 36, 35, 34, 33, 32, 31,
-             41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
-             60, 59, 58, 57, 56, 55, 54, 53, 52, 51,
-             61, 62, 63, 64, 65, 66, 67, 68, 69, 70,
-             80, 79, 78, 77, 76, 75, 74, 73, 72, 71,
-             81, 82, 83, 84, 85, 86, 87, 88, 89, 90,
-             100, 99, 98, 97, 96, 95, 94, 93, 92, 91]
-
     def __init__(self, game_id):
         self.game_id = game_id
         self.started = False
@@ -76,10 +69,10 @@ class Game:
     def add_new_player(self, player_id):
         self.players[player_id] = Player(player_id)
 
-    def set_player_color(self, player, color):
+    def set_player_color(self, player: Player, color):
         player.color = COLOR_MAP[color]
 
-    def player_lost_connection(self, player):
+    def player_lost_connection(self, player: Player):
         del self.players[player.player_id]
         if self.started and len(self.players) == 1 and not self.winner:
             self.winner = self.player_to_move
@@ -127,46 +120,14 @@ class Game:
                     continue
                 self.nukes.append(possible_position)
 
-    def move_player(self, p, amount):
-        if self.player_to_move == p:
-            checking_for_win = False
-            initial_x, initial_y = self.players[p][0][0], self.players[p][0][1]
-            if self.players[p][0][1] == 9 and self.players[p][0][0] <= 6:
-                checking_for_win = True
-            if checking_for_win:
-                # spaces to win is equal to self.players[p][0][0]
-                gone_over_amount = self.players[p][0][0] - amount
-                if gone_over_amount == 0:
-                    self.winner = player_id
-                elif gone_over_amount < 0:
-                    self.players[p][0][0] -= gone_over_amount * 2
-
-            if self.players[p][0][1] % 2 == 1:
-                moving_backwards = True
-            else:
-                moving_backwards = False
-            if self.players[p][0][0] + amount > 9 and not moving_backwards or self.players[p][0][0] - amount < 0 and moving_backwards:
-                self.players[p][0][1] += 1
-                if moving_backwards == False:
-                    amount -= 1 + (9 - self.players[p][0][0])
-                else:
-                    amount -= 1 + self.players[p][0][0]
-                moving_backwards = not moving_backwards
-                if moving_backwards:
-                    self.players[p][0][0] = 9
-                else:
-                    self.players[p][0][0] = 0
-            if moving_backwards:
-                self.players[p][0][0] -= amount
-            else:
-                self.players[p][0][0] += amount
-            self.check_collision(p, nukes = True)
-            if not DEBUG_FLAGS.get("disable_snakes_and_ladders"):
-                self.check_collision(p)
-
-    def roll_dice(self, p = None):
-        self.dice_pips = random.randint(1,6)
-        self.move_player(p, self.dice_pips)
+    def roll_dice(self, player: Player):
+        if not self.player_to_move == player:
+            return
+        self.dice_pips = random.randint(1, 6)
+        destination_number = player.board_number + self.dice_pips
+        if destination_number > 100:
+            destination_number = 100 - (destination_number - 100)
+        player.position = BOARD_NUMBER_TO_POSITION[destination_number]
 
     def player_collide(self, p, vector):
         player_x, player_y = self.calculate_destination_position(self.players[p][0], vector)
@@ -197,26 +158,18 @@ class Game:
                     self.player_collect_nuke(p, nuke)
                     break
 
-    def player_collect_nuke(self, p, nuke_index):
-        self.players[p][2] += 1
-        self.nukes[nuke_index] = [-100, -100]
-
-    # this function originally sent everyone but the nuking player back to the start
-    def player_uses_nuke(self, p):
-        self.players[p][2] -= 1
-        if not DEBUG_FLAGS.get("disable_nuke_movement"):
-            for player in range(1, 5):
-                if not self.players[player][5]:
-                    self.players[player][0] = [random.randint(0, 9), random.randint(0, 8)]
-                    self.check_collision(player)
-                    self.check_collision(player, nukes = True)
-        self.nuke_used = True
-        self.num_nukes_used += 1
+    def player_uses_nuke(self, player: Player):
+        player.nukes -= 1
+        self.nuke_used_this_game = True
         self.degrade()
+        for player in self.players:
+            self.players[player][0] = [random.randint(0, 9), random.randint(0, 8)]
+            self.check_collision(player)
+            self.check_collision(player, nukes = True)
 
     def degrade(self):
         tokens = 1
-        if random.randint(1, 4) == 1:
+        if random.randint(1, 3) == 1:
             tokens += 1
 
         while tokens > 0:
