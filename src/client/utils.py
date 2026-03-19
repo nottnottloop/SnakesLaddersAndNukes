@@ -1,7 +1,7 @@
 import pygame
 from abc import ABC, abstractmethod
 
-from ..shared.game import Game
+from ..shared.game import Game, Player
 from .constants import *
 from src.shared.constants import *
 from .networking import Network
@@ -34,14 +34,6 @@ class ClientState():
         self.music_degraded = 0
         self.sound_enabled = True
 
-        self.players_moving = []
-        self.player_movement_started = []
-        self.player_position_cache = []
-
-        self.nuke_cache = []
-        self.nukes_cached = False
-        self.nukes_acquired = 0
-
         self.ticks_passed = 0
         self.distance_x, self.distance_y = 0, 0
 
@@ -49,25 +41,24 @@ class ClientState():
         self.shake_direction = True
         self.explosion_group = pygame.sprite.Group()
 
-        for _ in range(5):
-            self.players_moving.append(False)
-            self.player_movement_started.append(False)
-            self.player_position_cache.append([0, 0])
+    @property
+    def player(self) -> Player:
+        return self.game.players.get(self.player_id)
 
 def blit_centered_text(window, text, y_offset=0):
     window.blit(text, (WIDTH / 2 - text.get_width() / 2, HEIGHT / 2 - text.get_height() / 2 + y_offset))
 
-def draw_bg(window, state):
-    if state.game == None or state.game.discoloration == 0:
+def draw_bg(window, state: ClientState):
+    if state.game == None or state.game.deg_color == 0:
         window.fill(WHITE.color)
-    if state.game != None:
-        if state.game.discoloration == 1:
+    else:
+        if state.game.deg_color == 1:
             window.fill((192, 192, 192))
-        elif state.game.discoloration == 2:
+        elif state.game.deg_color == 2:
             window.fill((128, 128, 128))
-        elif state.game.discoloration == 3:
+        elif state.game.deg_color == 3:
             window.fill((64, 64, 64))
-        elif state.game.discoloration == 4:
+        elif state.game.deg_color == 4:
             window.fill((102, 0, 0))
-        elif state.game.discoloration >= 5:
+        elif state.game.deg_color >= 5:
             window.fill((0, 0, 0))

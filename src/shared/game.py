@@ -27,25 +27,23 @@ class Nuke:
 
 class Game:
     def __init__(self, game_id):
-        self.game_id = game_id
+        self.game_id: int = game_id
         self.started = False
         
         self.players: dict[int, Player] = {}
         self.player_to_move: Player = None
         self.winner: Player = None
         self.dice_pips = random.randint(1, 6)
-        self.players_previous_space = []
-        self.player_travelled_on_movable = []
-
-        self.movables: list[Movable] = []
-        self.nukes = []
-        self.generate_objects()
 
         self.nuke_used_this_game = False
         self.min_num_of_nukes = 5
         self.max_num_of_nukes = 15
         # self.min_num_of_nukes = 98
         # self.max_num_of_nukes = 98
+
+        self.movables: list[Movable] = []
+        self.nukes: list[tuple] = []
+        self.generate_objects()
 
         self.deg_board = 0
         self.deg_color = 0
@@ -83,14 +81,14 @@ class Game:
 
     def generate_objects(self):
         movables_to_place = [
-            Movable(None, (-1, -1), "snake1"),
-            Movable(None, (-2, -2), "snake2"),
-            Movable(None, (0, -6), "snake3"),
-            Movable(None, (3, -5), "snake4"),
-            Movable(None, (3, 3), "ladder1"),
-            Movable(None, (0, 2), "ladder2"),
-            Movable(None, (-1, 2), "ladder3"),
-            Movable(None, (0, 5), "ladder4"),
+            Movable(None, Position(-1, -1), "snake1"),
+            Movable(None, Position(-2, -2), "snake2"),
+            Movable(None, Position(0, -6), "snake3"),
+            Movable(None, Position(3, -5), "snake4"),
+            Movable(None, Position(3, 3), "ladder1"),
+            Movable(None, Position(0, 2), "ladder2"),
+            Movable(None, Position(-1, 2), "ladder3"),
+            Movable(None, Position(0, 5), "ladder4"),
         ]
         random.shuffle(movables_to_place)
 
@@ -112,6 +110,7 @@ class Game:
                 else:
                     movable.position = possible_position
                     self.movables.append(movable)
+                    break
 
         for _ in range(random.randint(self.min_num_of_nukes, self.max_num_of_nukes)):
             while True:
@@ -119,6 +118,7 @@ class Game:
                 if possible_position == (0, 0) or possible_position == (0, 9) or possible_position in self.nukes:
                     continue
                 self.nukes.append(possible_position)
+                break
     
     def potentially_collect_nuke(self, player:Player):
         for i, nuke_position in enumerate(self.nukes):

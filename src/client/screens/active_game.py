@@ -19,6 +19,14 @@ class ActiveGameScreen(ScreenStateInterface):
             "dice_button": Button(self.window, self.state, 'roll', 550, 625, 100, 100, BLACK, WHITE, border_radius=100, sound=assets.dice),
             "nuke_button": Button(self.window, self.state, 'NUKE', 295, 615, 130, 130, RED, WHITE, border_radius=50, sound=assets.click),
         }
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONUP and self.state.connected:
+            pos = pygame.mouse.get_pos()
+            for btn in self.buttons.values():
+                if btn.click(pos):
+                    self.state.network.send(btn.text)
+    def update(self, dt):
+    def draw(self):
 
     # nudge each of the player tokens to prevent overlapping
     def calculate_offset_nudge(self, player):

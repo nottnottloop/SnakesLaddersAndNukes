@@ -7,7 +7,7 @@ from src.shared.constants import *
 
 from .screens.main_menu import MenuScreen
 from .screens.player_select import PlayerSelectScreen
-from .screens.active_game import ActiveGameScreen
+#from .screens.active_game import ActiveGameScreen
 
 pygame.font.init()
 pygame.display.set_icon(assets.ICON)
