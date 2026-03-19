@@ -65,6 +65,15 @@ class ActiveGameScreen(ScreenStateInterface):
             self.buttons["dice_button"].enable()
         else:
             self.buttons["dice_button"].disable()
+        
+        # Pieces
+        if self.game.deg_piece_shake == 0:
+            if self.state.shake_direction:
+                self.state.shake_amount += 1
+            else:
+                self.state.shake_amount -= 1
+            if abs(self.state.shake_amount) == 5:
+                self.state.shake_direction = not self.state.shake_direction
 
     def draw(self):
         # a box on the board is 46x47 pixels at 750x750 resolution
@@ -75,6 +84,18 @@ class ActiveGameScreen(ScreenStateInterface):
         # Game pieces
         for nuke in self.game.nukes:
             self.window.blit(assets.NUCLEARBOMB, (125 + (nuke.x * 51), 522 - (nuke.y * 51)))
+
+        for i, player in enumerate(self.game.players.values()):
+            # nudge each of the player tokens to prevent overlapping
+            offset_nudge = i * 5
+            if self.game.deg_pieces == 0:
+                self.window.blit(assets.PIECES[player.color.text],
+                        (BOARD_START_X + player.position.x * SQUARE_SIZE + offset_nudge + self.state.shake_amount,
+                        BOARD_START_Y - player.position.y * SQUARE_SIZE + offset_nudge))
+            else:
+                self.window.blit(assets.PIECESDEG[player.color.text],
+                        (BOARD_START_X + player.position.x * SQUARE_SIZE + offset_nudge + self.state.shake_amount,
+                        BOARD_START_Y - player.position.y * SQUARE_SIZE + offset_nudge))
 
         # UI
         for btn in self.buttons.values():
@@ -96,40 +117,6 @@ class ActiveGameScreen(ScreenStateInterface):
             self.window.blit(text, (90, 600))
 
         self.state.explosion_group.draw(self.window)
-
-
-    # nudge each of the player tokens to prevent overlapping
-    def calculate_offset_nudge(self, player):
-        return (player - 1) * 5
-
-    def draw_stationary_pieces(self, player):
-        # if shake_direction true, move right
-        x_offset, y_offset = self.game.players[player][0][0], self.game.players[player][0][1]
-        offset_nudge = calculate_offset_nudge(player)
-        if self.game.piece_shake == 1:
-            if shake_direction:
-                shake_amount += 1
-                if shake_amount == 5:
-                    shake_direction = not shake_direction
-            if not shake_direction:
-                shake_amount -= 1
-                if shake_amount == -5:
-                    shake_direction = not shake_direction
-        if self.game.deg_pieces == 0:
-            window.blit(assets.PIECES[self.game.players[player][1]],
-                    (BOARD_START_X + x_offset * SQUARE_SIZE + offset_nudge + self.shake_amount,
-                    BOARD_START_Y - y_offset * SQUARE_SIZE + offset_nudge))
-        else:
-            window.blit(assets.PIECESDEG[self.game.players[player][1]],
-                    (BOARD_START_X + x_offset * SQUARE_SIZE + offset_nudge + self.shake_amount,
-                    BOARD_START_Y - y_offset * SQUARE_SIZE + offset_nudge))
-
-    def draw_game_pieces(self, p):
-        for player in range(1, 5):
-            if self.game.players[player][3] == True:
-                draw_stationary_pieces(player)
-                if self.players_moving[player] and not self.player_movement_started[player] and not self.game.nuke_used:
-                    play_movement_animation(player, calculate_offset_nudge(player), p)
 
     def draw_snakes_and_ladders(self):
         if self.game.deg_snakes_and_ladders == 0:

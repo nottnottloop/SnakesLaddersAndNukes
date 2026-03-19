@@ -8,7 +8,7 @@ from ..shared.constants import *
 class Player:
     def __init__(self, player_id):
         self.player_id = player_id
-        self.position: Position = (0, 0)
+        self.position: Position = Position(0, 0)
         self.color: Color | None = None
         self.nukes = 0
         self.ready = False
