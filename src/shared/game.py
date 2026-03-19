@@ -10,6 +10,16 @@ class Player:
         self.nukes = 0
         self.ready = False
         self.debug = False
+    
+class Movable:
+    def __init__(self, position, vector, sprite):
+        self.position: Position = position
+        self.vector: Position = vector
+        self.sprite: str = sprite
+
+class Nuke:
+    def __init__(self, position):
+        self.position: Position = position
 
 class Game:
     board = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
@@ -23,14 +33,6 @@ class Game:
              81, 82, 83, 84, 85, 86, 87, 88, 89, 90,
              100, 99, 98, 97, 96, 95, 94, 93, 92, 91]
 
-    coord_board = [[0 for r in range(10)] for c in range(10)]
-    for r in range(10):
-        for c in range(10):
-            if r % 2 == 0:
-                coord_board[c][r] = 1 + c + (r * 10)
-            else:
-                coord_board[c][r] = 1 + (9 - c) + (r * 10)
-
     def __init__(self, game_id):
         self.game_id = game_id
         self.started = False
@@ -42,9 +44,7 @@ class Game:
         self.players_previous_space = []
         self.player_travelled_on_movable = []
 
-        self.time_to_move = 120
         self.nuke_used = False
-
         self.board = 0
         self.discoloration = 0
         self.pieces_degraded = 0
@@ -58,6 +58,11 @@ class Game:
 
         # self.min_num_of_nukes = 98
         # self.max_num_of_nukes = 98
+
+        self.movables: list[Movable] = []
+        self.nukes = []
+        self.generate_objects()
+        # self.debug = False
 
     @property
     def taken_colors(self) -> set[str]:
@@ -80,104 +85,47 @@ class Game:
             self.winner = self.player_to_move
 
     # Gameplay
-    def convert_position_to_board(self, position):
-        return self.board[position]
-
-    def convert_board_to_position(self, board_num):
-        return self.board.index(board_num)
-
-    def convert_position_to_coords(self, position):
-        x = position % 10
-        y = position // 10
-        return x, y
-
-    def convert_coords_to_position(self, x, y):
-        return y * 10 + x
-
-    def generate_movement_amount(self, position, x_offset, y_offset):
-        start_x, start_y = self.convert_position_to_coords(position)
-        end_x, end_y = start_x + x_offset, start_y + y_offset
-        return self.convert_coords_to_position(end_x, end_y)
+    def calculate_destination_position(self, start_pos: Position, vector: Position) -> Position:
+        return Position(start_pos.x + vector.x, start_pos.y + vector.y)
 
     def generate_objects(self):
-        def check_for_duplicate_positions(pos_x, pos_y, vector = None, is_nuke = False):
-            if not is_nuke:
-                test_list = []
-                test_list.extend(self.snakes) ; test_list.extend(self.ladders)
-                for i in range(len(test_list)):
-                    # the position of an object cannot equal the position of another object
-                    if tuple(test_list[i][0]) == (pos_x, pos_y):
-                        return True
-                    # the destination of an object cannot equal the destination of another object
-                    if tuple(self.calculate_destination_position((pos_x, pos_y), vector)) == \
-                            tuple(self.calculate_destination_position((test_list[i][0]), test_list[i][1])):
-                        return True
-                    # the position of an object cannot equal the destination of another object
-                    if (pos_x, pos_y) == tuple(self.calculate_destination_position((test_list[i][0]), test_list[i][1])):
-                        return True
-                    # the destination of an object cannot equal the position of another object
-                    if tuple(self.calculate_destination_position((pos_x, pos_y), vector)) == tuple(test_list[i][0]):
-                        return True
-            else:
-                for i in range(len(self.nukes)):
-                    if self.nukes[i] == (pos_x, pos_y):
-                        return True
-            return False
+        movables_to_place = [
+            Movable(None, (-1, -1), "snake1"),
+            Movable(None, (-2, -2), "snake2"),
+            Movable(None, (0, -6), "snake3"),
+            Movable(None, (3, -5), "snake4"),
+            Movable(None, (3, 3), "ladder1"),
+            Movable(None, (0, 2), "ladder2"),
+            Movable(None, (-1, 2), "ladder3"),
+            Movable(None, (0, 5), "ladder4"),
+        ]
+        random.shuffle(movables_to_place)
 
-        self.snakes = [[[0, 0], (-1, -1)], [[0, 0], (-2, -2)], [[0, 0], (0, -6)], [[0, 0], (3, -5)]]
-        self.ladders = [[[0, 0], (3, 3)], [[0, 0], (0, 2)], [[0, 0], (-1, 2)], [[0, 0], (0, 5)]]
-        for snake in range(4):
-            snake_added = False
-            while not snake_added:
-                snake_pos_x, snake_pos_y = random.randint(0, 9), random.randint(0, 9)
-                if (snake_pos_x, snake_pos_y) == (0, 9):
+        for movable in movables_to_place:
+            while True:
+                possible_position = Position(random.randint(0, 9), random.randint(0, 9))
+                destination_pos = self.calculate_destination_position(possible_position, movable.vector)
+                if destination_pos.x < 0 or destination_pos.x > 9 or destination_pos.y < 0 or destination_pos.y > 9:
                     continue
-                if snake == 0 and snake_pos_x == 0 or snake_pos_y == 0:
-                    continue
-                elif snake == 1 and snake_pos_x < 2 or snake_pos_y < 2:
-                    continue
-                elif snake == 2 and snake_pos_y < 6:
-                    continue
-                elif snake == 3 and snake_pos_x > 6 or snake_pos_y < 5:
-                    continue
+                for existing in self.movables:
+                    existing_destination_pos = self.calculate_destination_position(existing.position, existing.vector)
+                    if (
+                        possible_position == existing.position or
+                        possible_position == existing_destination_pos or
+                        destination_pos == existing.position or
+                        destination_pos == existing_destination_pos
+                    ):
+                        break
+                else:
+                    movable.position = possible_position
+                    self.movables.append(movable)
 
-                if check_for_duplicate_positions(snake_pos_x, snake_pos_y, self.snakes[snake][1]):
+        for _ in range(random.randint(self.min_num_of_nukes, self.max_num_of_nukes)):
+            while True:
+                possible_position = Position(random.randint(0, 9), random.randint(0, 9))
+                if possible_position == (0, 0) or possible_position == (0, 9) or possible_position in self.nukes:
                     continue
-
-                self.snakes[snake] = [[snake_pos_x, snake_pos_y], self.snakes[snake][1]]
-                # self.snakes.append(((snake_pos_x, snake_pos_y), snake_movement_amounts_to_append[snake]))
-                snake_added = True
-        for ladder in range(4):
-            ladder_added = False
-            while not ladder_added:
-                ladder_pos_x, ladder_pos_y = random.randint(0, 9), random.randint(0, 9)
-                if self.calculate_destination_position((ladder_pos_x, ladder_pos_y), self.ladders[ladder][1]) == (0, 9):
-                    continue
-                if ladder == 0 and ladder_pos_x > 6 or ladder_pos_y > 6:
-                    continue
-                elif ladder == 1 and ladder_pos_y > 7:
-                    continue
-                elif ladder == 2 and ladder_pos_x == 0 or ladder_pos_y > 7:
-                    continue
-                elif ladder == 3 and ladder_pos_y > 4:
-                    continue
-
-                if check_for_duplicate_positions(ladder_pos_x, ladder_pos_y, self.ladders[ladder][1]):
-                    continue
-
-                self.ladders[ladder] = [[ladder_pos_x, ladder_pos_y], self.ladders[ladder][1]]
-                ladder_added = True
-
-        for nuke in range(random.randint(self.min_num_of_nukes, self.max_num_of_nukes)):
-            nuke_added = False
-            while not nuke_added:
-                nuke_pos_x, nuke_pos_y = random.randint(0, 9), random.randint(0, 9)
-                if (nuke_pos_x, nuke_pos_y) == (0, 0) or (nuke_pos_x, nuke_pos_y) == (0, 9):
-                    continue
-                if check_for_duplicate_positions(nuke_pos_x, nuke_pos_y, is_nuke = True) and self.nukes:
-                    continue
-                self.nukes.append((nuke_pos_x, nuke_pos_y))
-                nuke_added = True
+                self.nukes.append(possible_position)
 
     def debug_move(self, p, direction):
         if direction == "Up":
@@ -241,13 +189,6 @@ class Game:
     def roll_dice(self, p = None):
         self.dice_pips = random.randint(1,6)
         self.move_player(p, self.dice_pips)
-
-    def calculate_destination_position(self, start_pos, vector):
-        start_x, start_y = start_pos[0], start_pos[1]
-        vector_x, vector_y = vector[0], vector[1]
-        end_x = start_x + vector_x
-        end_y = start_y + vector_y
-        return end_x, end_y
 
     def player_collide(self, p, vector):
         player_x, player_y = self.calculate_destination_position(self.players[p][0], vector)

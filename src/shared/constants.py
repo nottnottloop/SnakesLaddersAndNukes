@@ -2,6 +2,7 @@ from enum import Enum
 from collections import namedtuple
 
 Color = namedtuple("Color", ["text", "color"])
+Position = namedtuple("Position", ["x", "y"])
 
 BLACK = Color("Black", (0, 0, 0))
 WHITE = Color("White", (255, 255, 255))
@@ -16,5 +17,3 @@ COLOR_MAP = {
     "Green": GREEN,
     "Yellow": YELLOW,
 }
-
-Position = namedtuple("Position", ["x", "y"])
