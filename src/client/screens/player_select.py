@@ -44,9 +44,12 @@ class PlayerSelectScreen(ScreenStateInterface):
                     #print("Color:", game.players[self.state.player_id][1])
                     #print("Blocked colors", game.blocked_colors)
         elif event.type == FAILED_TO_CONNECT_TIMER:
+            pygame.time.set_timer(FAILED_TO_CONNECT_TIMER, 0)
             pygame.event.post(pygame.event.Event(CHANGE_STATE, {"state": "menu_screen"}))
 
     def update(self, dt):
+        if self.state.connected:
+            self.game = self.state.network.send("get")
         if not self.state.connected and not self.connection_failed:
             try:
                 self.state.network.connect()
@@ -57,7 +60,6 @@ class PlayerSelectScreen(ScreenStateInterface):
                 self.state.connected = True
                 self.state.player_id = next(reversed(self.game.players.values())).player_id
                 print(f"Player ID {self.state.player_id}")
-        self.game = self.state.network.send("get")
     
     def draw(self):
         draw_bg(self.window, self.state)
