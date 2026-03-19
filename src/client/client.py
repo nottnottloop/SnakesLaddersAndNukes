@@ -7,7 +7,7 @@ from src.shared.constants import *
 
 from .screens.main_menu import MenuScreen
 from .screens.player_select import PlayerSelectScreen
-#from .screens.active_game import ActiveGameScreen
+from .screens.active_game import ActiveGameScreen
 
 pygame.font.init()
 pygame.display.set_icon(assets.ICON)
@@ -19,7 +19,7 @@ state = ClientState()
 screen_states = {
     "menu_screen": MenuScreen(window, state),
     "player_select": PlayerSelectScreen(window, state),
-    #"active_game": ActiveGameScreen(window, state),
+    "active_game": ActiveGameScreen(window, state),
 }
 state.screen_state = screen_states["menu_screen"]
 

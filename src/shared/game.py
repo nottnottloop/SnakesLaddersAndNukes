@@ -1,6 +1,9 @@
 import random
+from itertools import cycle
+
 from ..shared.debug import DEBUG_FLAGS
 from ..shared.constants import *
+
 
 class Player:
     def __init__(self, player_id):
@@ -32,6 +35,7 @@ class Game:
         
         self.players: dict[int, Player] = {}
         self.player_to_move: Player = None
+        self.player_cycle: cycle = None
         self.winner: Player = None
         self.dice_pips = random.randint(1, 6)
 
@@ -42,7 +46,7 @@ class Game:
         # self.max_num_of_nukes = 98
 
         self.movables: list[Movable] = []
-        self.nukes: list[tuple] = []
+        self.nukes: list[Position] = []
         self.generate_objects()
 
         self.deg_board = 0
@@ -52,6 +56,7 @@ class Game:
         self.deg_nuke_text = 0
         self.deg_snakes_and_ladders = 0
         self.deg_piece_shake = 0
+        self.deg_music = 0
 
         # self.debug = False
 
@@ -70,10 +75,15 @@ class Game:
     def set_player_color(self, player: Player, color: str):
         player.color = COLOR_MAP[color]
 
+    def set_player_ready(self, player: Player):
+        player.ready = True
+        if self.players_are_ready:
+            self.player_cycle = cycle(self.players.values())
+            self.player_to_move = next(self.player_cycle)
+            self.started = True
+
     def player_lost_connection(self, player: Player):
         del self.players[player.player_id]
-        if self.started and len(self.players) == 1 and not self.winner:
-            self.winner = self.player_to_move
 
     # Gameplay
     def calculate_destination_position(self, start_pos: Position, vector: Position) -> Position:
@@ -142,6 +152,7 @@ class Game:
             destination_number = 100 - (destination_number - 100)
         player.position = BOARD_NUMBER_TO_POSITION[destination_number]
         self.check_player_iteraction(player)
+        self.player_to_move = next(self.player_cycle)
 
     def nuke(self, player: Player):
         player.nukes -= 1

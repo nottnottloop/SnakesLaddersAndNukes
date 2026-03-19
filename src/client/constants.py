@@ -16,4 +16,7 @@ FONTS = {
     50: pygame.font.SysFont("consolas", 50),
     60: pygame.font.SysFont("consolas", 60),
     80: pygame.font.SysFont("consolas", 80),
+    120: pygame.font.SysFont("consolas", 120),
 }
+
+DEG_NUKE_FONT = pygame.font.SysFont("impact", 120)

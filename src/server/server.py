@@ -49,7 +49,7 @@ def threaded_client(conn, addr, player_id, game_id):
                 if data in (COLOR_MAP.keys()):
                     game.set_player_color(player, data)
                 elif data == "Ready Up":
-                    player.ready = True
+                    game.set_player_ready(player)
                 elif data == "roll":
                     game.roll_dice(player)
                 elif data == "NUKE":

@@ -67,6 +67,8 @@ class PlayerSelectScreen(ScreenStateInterface):
                 self.buttons["ready_up_button"].disable()
             else:
                 self.buttons["ready_up_button"].enable()
+        if self.game.started:
+            pygame.event.post(pygame.event.Event(CHANGE_STATE, {"state": "active_game"}))
     
     def draw(self):
         draw_bg(self.window, self.state)

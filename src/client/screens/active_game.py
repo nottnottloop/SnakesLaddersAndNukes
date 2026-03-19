@@ -7,13 +7,10 @@ from ..constants import *
 from ..networking import Network
 from ...shared.game import Game
 
-NUKE_ICON_LOCATION = (15, 635)
-
 class ActiveGameScreen(ScreenStateInterface):
-    def __init__(self, window: pygame.surface.Surface, state: Game):
+    def __init__(self, window: pygame.surface.Surface, state: ClientState):
         self.window = window
         self.state = state
-        self.game = self.game
         self.buttons: dict[str, Button] = {
             "dice_button": Button(window, state, 'roll', 550, 625, 100, 100, BLACK, WHITE, border_radius=100, sound=assets.dice),
             "nuke_button": Button(window, state, 'NUKE', 295, 615, 130, 130, RED, WHITE, border_radius=50, sound=assets.click),
@@ -44,7 +41,6 @@ class ActiveGameScreen(ScreenStateInterface):
             #        pygame.mixer.music.set_volume(0.1)
             #        pygame.mixer.music.play(-1)
             #        self.music_degraded = 2
-
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONUP and self.state.connected:
             pos = pygame.mouse.get_pos()
@@ -62,7 +58,7 @@ class ActiveGameScreen(ScreenStateInterface):
 
         # Dice
         if self.game.player_to_move == self.player:
-            if self.game.dice_degraded == 0:
+            if self.game.deg_dice == 0:
                 self.buttons["dice_button"].image = assets.DICE[self.game.dice_pips]
             else:
                 self.buttons["dice_button"].image = assets.DICEDEG[self.game.dice_pips]
@@ -71,14 +67,36 @@ class ActiveGameScreen(ScreenStateInterface):
             self.buttons["dice_button"].disable()
 
     def draw(self):
+        # a box on the board is 46x47 pixels at 750x750 resolution
+        # moving x or y means change by 51 pixels in that direction
+        draw_bg(self.window, self.state)
         self.window.blit(assets.BOARD[self.game.deg_board], (WIDTH / 2 - assets.BOARD1.get_width() / 2, 30))
-        self.state.explosion_group.draw(self.window)
+
+        # Game pieces
+        for nuke in self.game.nukes:
+            self.window.blit(assets.NUCLEARBOMB, (125 + (nuke.x * 51), 522 - (nuke.y * 51)))
+
+        # UI
         for btn in self.buttons.values():
             btn.draw()
         if not self.game.deg_color:
             self.window.blit(assets.BIGGERPIECES[self.game.player_to_move.color.text], (5, 5))
         else:
             self.window.blit(assets.BIGGERPIECESDEG[self.game.player_to_move.color.text], (5, 5))
+        # Nuke icon (not button)
+        if self.player.nukes > 0:
+            self.window.blit(assets.NUKEACTIVE, (15, 635))
+        else:
+            self.window.blit(assets.NUKEINACTIVE, (15, 635))
+        if not self.game.deg_nuke_text:
+            text = FONTS[120].render(str(self.player.nukes), True, RED.color)
+            self.window.blit(text, (90, 620))
+        else:
+            text = DEG_NUKE_FONT.render(str(self.player.nukes), True, RED.color)
+            self.window.blit(text, (90, 600))
+
+        self.state.explosion_group.draw(self.window)
+
 
     # nudge each of the player tokens to prevent overlapping
     def calculate_offset_nudge(self, player):
@@ -97,7 +115,7 @@ class ActiveGameScreen(ScreenStateInterface):
                 shake_amount -= 1
                 if shake_amount == -5:
                     shake_direction = not shake_direction
-        if self.game.pieces_degraded == 0:
+        if self.game.deg_pieces == 0:
             window.blit(assets.PIECES[self.game.players[player][1]],
                     (BOARD_START_X + x_offset * SQUARE_SIZE + offset_nudge + self.shake_amount,
                     BOARD_START_Y - y_offset * SQUARE_SIZE + offset_nudge))
@@ -114,7 +132,7 @@ class ActiveGameScreen(ScreenStateInterface):
                     play_movement_animation(player, calculate_offset_nudge(player), p)
 
     def draw_snakes_and_ladders(self):
-        if self.game.snakes_and_ladders_degraded == 0:
+        if self.game.deg_snakes_and_ladders == 0:
             for snake in range(3, -1, -1):
                 # y_offset, x_offset = calculate_offset(self.game.snakes[snake][0])
                 # if self.game.snakes[snake][3] == True:
@@ -172,28 +190,6 @@ class ActiveGameScreen(ScreenStateInterface):
                     window.blit(assets.LADDER4DEG,
                             (117 + (self.game.ladders[ladder][0][0] * 51) - 17, 517 - (self.game.ladders[ladder][0][1] * 51) - 240))
 
-    def draw_nukes(self):
-        for nuke in (range(len(self.nuke_cache))):
-            window.blit(assets.NUCLEARBOMB,
-                    (125 + (self.nuke_cache[nuke][0] * 51), 522 - (self.nuke_cache[nuke][1] * 51)))
-
-    def draw_nuke_buttons(self, p):
-        if self.game.players[p][2] == 0:
-            window.blit(assets.NUKEINACTIVE, NUKE_ICON_LOCATION)
-        else:
-            window.blit(assets.NUKEACTIVE, NUKE_ICON_LOCATION)
-            if self.game.degraded_nuke_text == 0:
-                font = pygame.font.SysFont("consolas", 120)
-                text = font.render(str(self.game.players[p][2]), True, RED)
-                window.blit(text, (90, 620))
-            else:
-                font = pygame.font.SysFont("impact", 120)
-                text = font.render(str(self.game.players[p][2]), True, RED)
-                window.blit(text, (90, 600))
-            buttons["nuke_button"].draw()
-
-
-
     def draw_winner_window(self, p):
         font = pygame.font.SysFont("consolas", 70, bold=True)
         text = font.render("ERROR", True, parse_color(self.game.players[self.game.winner][1]))
@@ -207,7 +203,7 @@ class ActiveGameScreen(ScreenStateInterface):
                 text = font.render("You won...", True, parse_color(self.game.players[self.game.winner][1]))
                 if self.sound_enabled:
                     assets.nukewin.play()
-                if self.music_degraded == 0:
+                if self.game.deg_music == 0:
                     pygame.mixer.music.stop()
         else:
             if self.game.num_nukes_used == 0:
@@ -219,24 +215,6 @@ class ActiveGameScreen(ScreenStateInterface):
                 text = font.render(self.game.players[self.game.winner][1] + " won...", True, parse_color(self.game.players[self.game.winner][1]))
                 if self.sound_enabled:
                     assets.nukewin.play()
-                if self.music_degraded == 0:
+                if self.game.deg_music == 0:
                     pygame.mixer.music.stop()
         blit_centered_text(window, text, y_offset=-325)
-
-    def draw_game_objects(self, p=None, player_position_cache=None):
-        # a box on the board is 46x47 pixels at 750x750 resolution
-        # moving x or y means change by 51 pixels in that direction
-        # def calculate_offset(position):
-        #     y_offset = position // 10
-        #     x_offset = position % 10
-        #     if y_offset % 2 != 0:
-        #         x_offset = 9 - x_offset
-        #     return y_offset, x_offset
-        if self.game.started:
-            buttons["ready_up_button"].disable()
-        draw_dice(p)
-        draw_nuke_buttons(p)
-        draw_move_icon()
-        draw_snakes_and_ladders()
-        draw_nukes()
-        draw_game_pieces(p)
