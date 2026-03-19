@@ -29,8 +29,7 @@ class MenuScreen(ScreenStateInterface):
                     self.buttons["mute_button"].image = assets.MUTED
             self.explosion_easter_egg_counter += 1
             if self.explosion_easter_egg_counter > 10:
-                explosion = Explosion(WIDTH/2, HEIGHT/2)
-                self.state.explosion_group.add(explosion)
+                self.state.explosion_group.add(Explosion())
 
     def update(self, dt):
         pass

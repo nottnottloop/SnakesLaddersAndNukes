@@ -3,7 +3,7 @@ from . import load_assets as assets
 from .constants import *
 
 class Explosion(pygame.sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self):
         pygame.sprite.Sprite.__init__(self)
         self.images = assets.EXPLOSION_IMAGES
         self.index = 0
@@ -13,8 +13,7 @@ class Explosion(pygame.sprite.Sprite):
         self.counter = 0
 
     def update(self):
-        explosion_speed = 15
-        #update explosion animation
+        explosion_speed = 5
         self.counter += 1
 
         if self.counter >= explosion_speed and self.index < len(self.images) - 1:
@@ -22,6 +21,5 @@ class Explosion(pygame.sprite.Sprite):
             self.index += 1
             self.image = self.images[self.index]
 
-        #if the animation is complete, reset animation index
         if self.index >= len(self.images) - 1 and self.counter >= explosion_speed:
             self.kill()
