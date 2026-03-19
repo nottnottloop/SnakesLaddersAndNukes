@@ -44,24 +44,24 @@ class Game:
         self.players_previous_space = []
         self.player_travelled_on_movable = []
 
-        self.nuke_used = False
-        self.board = 0
-        self.discoloration = 0
-        self.pieces_degraded = 0
-        self.dice_degraded = 0
-        self.degraded_nuke_text = 0
-        self.snakes_and_ladders_degraded = 0
-        self.piece_shake = 0
-
-        self.min_num_of_nukes = 5
-        self.max_num_of_nukes = 15
-
-        # self.min_num_of_nukes = 98
-        # self.max_num_of_nukes = 98
-
         self.movables: list[Movable] = []
         self.nukes = []
         self.generate_objects()
+
+        self.nuke_used_this_game = False
+        self.min_num_of_nukes = 5
+        self.max_num_of_nukes = 15
+        # self.min_num_of_nukes = 98
+        # self.max_num_of_nukes = 98
+
+        self.deg_board = 0
+        self.deg_color = 0
+        self.deg_pieces = 0
+        self.deg_dice = 0
+        self.deg_nuke_text = 0
+        self.deg_snakes_and_ladders = 0
+        self.deg_piece_shake = 0
+
         # self.debug = False
 
     @property
@@ -127,19 +127,8 @@ class Game:
                     continue
                 self.nukes.append(possible_position)
 
-    def debug_move(self, p, direction):
-        if direction == "Up":
-            self.players[p][0][1] += 1
-        if direction == "Down":
-            self.players[p][0][1] -= 1
-        if direction == "Left":
-            self.players[p][0][0] -= 1
-        if direction == "Right":
-            self.players[p][0][0] += 1
-
     def move_player(self, p, amount):
-        self.nuke_used = False
-        if self.player_to_move == p or DEBUG_FLAGS.get("disable_move_turns"):
+        if self.player_to_move == p:
             checking_for_win = False
             initial_x, initial_y = self.players[p][0][0], self.players[p][0][1]
             if self.players[p][0][1] == 9 and self.players[p][0][0] <= 6:
@@ -174,17 +163,6 @@ class Game:
             self.check_collision(p, nukes = True)
             if not DEBUG_FLAGS.get("disable_snakes_and_ladders"):
                 self.check_collision(p)
-            self.next_player_to_move()
-
-    def next_player_to_move(self):
-        next_player_to_move_found = False
-        while not next_player_to_move_found:
-            self.player_to_move += 1
-            if self.player_to_move > 4:
-                self.player_to_move = 1
-            if self.players[self.player_to_move][0] == [-10, 20]:
-                continue
-            next_player_to_move_found = True
 
     def roll_dice(self, p = None):
         self.dice_pips = random.randint(1,6)
@@ -234,55 +212,50 @@ class Game:
                     self.check_collision(player, nukes = True)
         self.nuke_used = True
         self.num_nukes_used += 1
-        self.degrade_game()
+        self.degrade()
 
-    def degrade_game(self):
-        degrade_tokens = 1
+    def degrade(self):
+        tokens = 1
         if random.randint(1, 4) == 1:
-            degrade_tokens += 1
-        while degrade_tokens > 0:
+            tokens += 1
+
+        while tokens > 0:
             degrade_num = random.randint(1, 5)
-            if self.board == 4 and self.discoloration == 5 and self.pieces_degraded == 1 and self.dice_degraded == 1 and self.degraded_nuke_text == 1:
+
+            if (
+                self.deg_board == DEG_MAX.DEG_BOARD.value and
+                self.deg_color == DEG_MAX.DEG_COLOR.value and
+                self.deg_pieces == DEG_MAX.DEG_PIECES.value and
+                self.deg_dice == DEG_MAX.DEG_DICE.value and
+                self.deg_nuke_text == DEG_MAX.DEG_NUKE_TEXT.value
+            ):
                 if self.snakes_and_ladders_degraded == 0:
                     self.snakes_and_ladders_degraded = 1
-                    degrade_tokens -= 1
                 elif self.piece_shake == 0:
                     self.piece_shake = 1
-                    degrade_tokens -= 1
-                else:
-                    degrade_tokens = 0
-            if degrade_num == 1:
-                if self.board == 4:
-                    continue
-                else:
-                    self.board += 1
-                    degrade_tokens -= 1
-            if degrade_num == 2:
-                if self.discoloration == 5:
-                    continue
-                else:
-                    self.discoloration += 1
-                    degrade_tokens -= 1
-            if degrade_num == 3:
-                if self.pieces_degraded == 1:
-                    continue
-                else:
-                    self.pieces_degraded += 1
-                    degrade_tokens -= 1
-            if degrade_num == 4:
-                if self.dice_degraded == 1:
-                    continue
-                else:
-                    self.dice_degraded += 1
-                    degrade_tokens -= 1
-            if degrade_num == 5:
-                if self.degraded_nuke_text == 1:
-                    continue
-                else:
-                    self.degraded_nuke_text += 1
-                    degrade_tokens -= 1
+                break
 
+            if degrade_num == 1 and self.board < DEG_MAX.DEG_BOARD.value:
+                self.board += 1
+                tokens -= 1
 
+            elif degrade_num == 2 and self.discoloration < DEG_MAX.DEG_COLOR.value:
+                self.discoloration += 1
+                tokens -= 1
+
+            elif degrade_num == 3 and self.pieces_degraded < DEG_MAX.DEG_PIECES.value:
+                self.pieces_degraded += 1
+                tokens -= 1
+
+            elif degrade_num == 4 and self.dice_degraded < DEG_MAX.DEG_DICE.value:
+                self.dice_degraded += 1
+                tokens -= 1
+
+            elif degrade_num == 5 and self.degraded_nuke_text < DEG_MAX.DEG_NUKE_TEXT.value:
+                self.degraded_nuke_text += 1
+                tokens -= 1
+
+    # Debug code
     def activate_debug(self, p):
         debug_color = ""
         if p == 1:
@@ -301,3 +274,13 @@ class Game:
             self.players[p][2] = 100
         if DEBUG_FLAGS.get("i_just_want_to_win"):
             self.players[p][0] = [1, 9]
+
+    def debug_move(self, player, direction):
+        if direction == "Up":
+            player.y += 1
+        if direction == "Down":
+            player.y -= 1
+        if direction == "Left":
+            player.x -= 1
+        if direction == "Right":
+            player.x += 1

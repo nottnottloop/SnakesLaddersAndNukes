@@ -17,3 +17,12 @@ COLOR_MAP = {
     "Green": GREEN,
     "Yellow": YELLOW,
 }
+
+class DEG_MAX(Enum):
+    DEG_BOARD = 4
+    DEG_COLOR = 5
+    DEG_PIECES = 1
+    DEG_DICE = 1
+    DEG_NUKE_TEXT = 1
+    DEG_SNAKES_AND_LADDERS = 1
+    DEG_PIECE_SHAKE = 1
