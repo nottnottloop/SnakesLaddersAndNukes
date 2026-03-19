@@ -12,31 +12,20 @@ class PlayerSelectScreen(ScreenStateInterface):
         self.window = window
         self.state = state
         self.connection_failed = False
-        self.color_buttons = {
+        self.color_buttons: dict[str, Button] = {
             "red": Button(window, state, 'Red', 375, 175, 200, 200, RED.color, RED.color, sound=assets.click, enabled=True),
             "green": Button(window, state, 'Green', 375, 375, 200, 200, GREEN.color, GREEN.color, sound=assets.click, enabled=True),
             "blue": Button(window, state, 'Blue', 175, 175, 200, 200, BLUE.color, BLUE.color, sound=assets.click, enabled=True),
             "yellow": Button(window, state, 'Yellow', 175, 375, 200, 200, YELLOW.color, YELLOW.color, sound=assets.click, enabled=True),
         }
-        self.lobby_buttons = {
+        self.lobby_buttons: dict[str, Button] = {
             "ready_up_button": Button(window, state, 'Ready Up', 225, 450, 300, 150, BLACK.color, WHITE.color, sound=assets.click),
         }
-        self.buttons = self.color_buttons | self.lobby_buttons
-        self.fonts = {
-            25: pygame.font.SysFont("consolas", 25),
-            40: pygame.font.SysFont("consolas", 40),
-            50: pygame.font.SysFont("consolas", 50),
-            60: pygame.font.SysFont("consolas", 60),
-            80: pygame.font.SysFont("consolas", 80),
-        }
+        self.buttons: dict[str, Button] = self.color_buttons | self.lobby_buttons
     
     @property
     def game(self) -> Game:
         return self.state.game
-
-    @game.setter
-    def game(self, game: Game):
-        self.state.game = game
 
     @property
     def player(self) -> Player:
@@ -48,24 +37,18 @@ class PlayerSelectScreen(ScreenStateInterface):
             for btn in self.buttons.values():
                 if btn.click(pos):
                     self.state.network.send(btn.text)
-                    #print("Clicked:", btn.text)
-                    #print("Position", game.players[self.state.player_id][0])
-                    #print("Color:", game.players[self.state.player_id][1])
-                    #print("Blocked colors", game.blocked_colors)
         elif event.type == FAILED_TO_CONNECT_TIMER:
             pygame.time.set_timer(FAILED_TO_CONNECT_TIMER, 0)
             pygame.event.post(pygame.event.Event(CHANGE_STATE, {"state": "menu_screen"}))
 
     def update(self, dt):
         if self.state.connected:
-            self.game = self.state.network.send("get")
+            self.state.game = self.state.network.send("get")
         if not self.state.connected and not self.connection_failed:
             try:
                 self.state.network.connect()
-                self.game = self.state.network.send("get")
+                self.state.game = self.state.network.send("get")
             except Exception as e:
-                print(e)
-                print("Could not connect!")
                 self.connection_failed = True
                 pygame.time.set_timer(FAILED_TO_CONNECT_TIMER, 1000)
             else:
@@ -90,21 +73,21 @@ class PlayerSelectScreen(ScreenStateInterface):
         for btn in self.buttons.values():
             btn.draw()
         if not self.state.connected:
-            self.text = self.fonts[80].render("Connecting...", True, BLACK.color)
+            self.text = FONTS[80].render("Connecting...", True, BLACK.color)
             blit_centered_text(self.window, self.text)
         elif self.connection_failed:
-            text = self.fonts[60].render("Failed to connect! :(", True, BLACK.color)
+            text = FONTS[60].render("Failed to connect! :(", True, BLACK.color)
             blit_centered_text(self.window, text)
         else:
-            text = self.fonts[25].render(f"Lobby: {str(self.game.game_id)}", True, BLACK.color)
+            text = FONTS[25].render(f"Lobby: {str(self.game.game_id)}", True, BLACK.color)
             self.window.blit(text, (10, 10))
             if not self.player.color:
-                text = self.fonts[50].render("Choose your colour!", True, BLACK.color)
+                text = FONTS[50].render("Choose your colour!", True, BLACK.color)
                 blit_centered_text(self.window, text, -300)
             else:
-                text = self.fonts[25].render(self.player.color.text, True, self.player.color.color)
+                text = FONTS[25].render(self.player.color.text, True, self.player.color.color)
                 self.window.blit(text, (10, 40))
-                text = self.fonts[40].render(f"Players in Lobby: {str(len(self.game.players))}/4", True, BLACK.color)
+                text = FONTS[40].render(f"Players in Lobby: {str(len(self.game.players))}/4", True, BLACK.color)
                 blit_centered_text(self.window, text, -220)
-                text = self.fonts[50].render("Waiting for Players...", True, self.player.color.color)
+                text = FONTS[50].render("Waiting for Players...", True, self.player.color.color)
                 blit_centered_text(self.window, text, -50)

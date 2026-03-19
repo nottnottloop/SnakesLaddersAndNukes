@@ -10,3 +10,10 @@ SQUARE_SIZE = 51
 BOARD_START_X = 117
 BOARD_START_Y = 517
 
+FONTS = {
+    25: pygame.font.SysFont("consolas", 25),
+    40: pygame.font.SysFont("consolas", 40),
+    50: pygame.font.SysFont("consolas", 50),
+    60: pygame.font.SysFont("consolas", 60),
+    80: pygame.font.SysFont("consolas", 80),
+}

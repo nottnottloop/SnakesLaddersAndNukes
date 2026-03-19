@@ -26,4 +26,5 @@ class Network:
             self.client.send(str.encode(data))
             return pickle.loads(self.client.recv(4096))
         except Exception as e:
+            print("Could not connect")
             print(e)
