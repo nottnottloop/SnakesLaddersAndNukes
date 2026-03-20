@@ -10,7 +10,7 @@ class Player:
         self.player_id = player_id
         self.position: Position = Position(0, 0)
         self.color: Color | None = None
-        self.nukes = 0
+        self.nukes = 999
         self.ready = False
         self.debug = False
     
@@ -158,8 +158,8 @@ class Game:
         player.nukes -= 1
         self.nuke_used_this_game = True
         self.degrade()
-        for player in self.players:
-            player.position = (random.randint(0, 9), random.randint(0, 8))
+        for player in self.players.values():
+            player.position = Position(random.randint(0, 9), random.randint(0, 8))
             self.check_player_iteraction(player)
 
     def degrade(self):
@@ -168,7 +168,7 @@ class Game:
             tokens += 1
 
         while tokens > 0:
-            degrade_num = random.randint(1, 5)
+            degrade_num = random.randint(1, 6)
 
             if (
                 self.deg_board == DEG_MAX.DEG_BOARD.value and
@@ -177,30 +177,28 @@ class Game:
                 self.deg_dice == DEG_MAX.DEG_DICE.value and
                 self.deg_nuke_text == DEG_MAX.DEG_NUKE_TEXT.value
             ):
-                if self.snakes_and_ladders_degraded == 0:
-                    self.snakes_and_ladders_degraded = 1
-                elif self.piece_shake == 0:
-                    self.piece_shake = 1
-                break
+                if self.deg_piece_shake < DEG_MAX.DEG_PIECE_SHAKE.value:
+                    self.deg_piece_shake = 1
+                else:
+                    break
 
-            if degrade_num == 1 and self.board < DEG_MAX.DEG_BOARD.value:
-                self.board += 1
+            if degrade_num == 1 and self.deg_board < DEG_MAX.DEG_BOARD.value:
+                self.deg_board += 1
                 tokens -= 1
-
-            elif degrade_num == 2 and self.discoloration < DEG_MAX.DEG_COLOR.value:
-                self.discoloration += 1
+            elif degrade_num == 2 and self.deg_color < DEG_MAX.DEG_COLOR.value:
+                self.deg_color += 1
                 tokens -= 1
-
-            elif degrade_num == 3 and self.pieces_degraded < DEG_MAX.DEG_PIECES.value:
-                self.pieces_degraded += 1
+            elif degrade_num == 3 and self.deg_pieces < DEG_MAX.DEG_PIECES.value:
+                self.deg_pieces += 1
                 tokens -= 1
-
-            elif degrade_num == 4 and self.dice_degraded < DEG_MAX.DEG_DICE.value:
-                self.dice_degraded += 1
+            elif degrade_num == 4 and self.deg_dice < DEG_MAX.DEG_DICE.value:
+                self.deg_dice += 1
                 tokens -= 1
-
-            elif degrade_num == 5 and self.degraded_nuke_text < DEG_MAX.DEG_NUKE_TEXT.value:
-                self.degraded_nuke_text += 1
+            elif degrade_num == 5 and self.deg_nuke_text < DEG_MAX.DEG_NUKE_TEXT.value:
+                self.deg_nuke_text += 1
+                tokens -= 1
+            elif degrade_num == 6 and self.deg_snakes_and_ladders < DEG_MAX.DEG_SNAKES_AND_LADDERS.value:
+                self.deg_snakes_and_ladders += 1
                 tokens -= 1
 
     # Debug code

@@ -12,8 +12,8 @@ class ActiveGameScreen(ScreenStateInterface):
         self.window = window
         self.state = state
         self.buttons: dict[str, Button] = {
-            "dice_button": Button(window, state, 'roll', 550, 625, 100, 100, BLACK, WHITE, border_radius=100, sound=assets.dice),
-            "nuke_button": Button(window, state, 'NUKE', 295, 615, 130, 130, RED, WHITE, border_radius=50, sound=assets.click),
+            "dice_button": Button(window, state, 'roll', 550, 625, 100, 100, BLACK.color, WHITE.color, border_radius=100, sound=assets.dice),
+            "nuke_button": Button(window, state, 'NUKE', 295, 615, 130, 130, RED.color, WHITE.color, border_radius=50, sound=assets.click),
         }
 
     @property
@@ -42,7 +42,7 @@ class ActiveGameScreen(ScreenStateInterface):
             #        pygame.mixer.music.play(-1)
             #        self.music_degraded = 2
     def handle_event(self, event):
-        if event.type == pygame.MOUSEBUTTONUP and self.state.connected:
+        if event.type == pygame.MOUSEBUTTONUP:
             pos = pygame.mouse.get_pos()
             for btn in self.buttons.values():
                 if btn.click(pos):
@@ -65,6 +65,12 @@ class ActiveGameScreen(ScreenStateInterface):
             self.buttons["dice_button"].enable()
         else:
             self.buttons["dice_button"].disable()
+
+        # Nuke Button
+        if self.player.nukes > 0:
+            self.buttons["nuke_button"].enable()
+        else:
+            self.buttons["nuke_button"].disable()
         
         # Pieces
         if self.game.deg_piece_shake:
@@ -85,18 +91,6 @@ class ActiveGameScreen(ScreenStateInterface):
         for nuke in self.game.nukes:
             self.window.blit(assets.NUCLEARBOMB, (125 + (nuke.x * 51), 522 - (nuke.y * 51)))
 
-        for i, player in enumerate(self.game.players.values()):
-            # nudge each of the player tokens to prevent overlapping
-            offset_nudge = i * 5
-            if self.game.deg_pieces == 0:
-                self.window.blit(assets.PIECES[player.color.text],
-                        (BOARD_START_X + player.position.x * SQUARE_SIZE + offset_nudge + self.state.shake_amount,
-                        BOARD_START_Y - player.position.y * SQUARE_SIZE + offset_nudge))
-            else:
-                self.window.blit(assets.PIECESDEG[player.color.text],
-                        (BOARD_START_X + player.position.x * SQUARE_SIZE + offset_nudge + self.state.shake_amount,
-                        BOARD_START_Y - player.position.y * SQUARE_SIZE + offset_nudge))
-
         for movable in self.game.movables:
             movable_draw_data = MOVABLE_DRAW_DATA[movable.sprite]
             if not self.game.deg_snakes_and_ladders:
@@ -105,10 +99,18 @@ class ActiveGameScreen(ScreenStateInterface):
                 movable_sprite_to_draw = movable_draw_data.deg_sprite
             self.window.blit(movable_sprite_to_draw, (117 + (movable.position.x * 51) + movable_draw_data.offset.x, 517 - (movable.position.y * 51) + movable_draw_data.offset.y))
 
+        for i, player in enumerate(self.game.players.values()):
+            # nudge each of the player tokens to prevent overlapping
+            offset_nudge = i * 5
+            if self.game.deg_pieces == 0:
+                self.window.blit(assets.PIECES[player.color.text], (BOARD_START_X + player.position.x * SQUARE_SIZE + offset_nudge + self.state.shake_amount, BOARD_START_Y - player.position.y * SQUARE_SIZE + offset_nudge))
+            else:
+                self.window.blit(assets.PIECESDEG[player.color.text], (BOARD_START_X + player.position.x * SQUARE_SIZE + offset_nudge + self.state.shake_amount, BOARD_START_Y - player.position.y * SQUARE_SIZE + offset_nudge))
+
         # UI
         for btn in self.buttons.values():
             btn.draw()
-        if not self.game.deg_color:
+        if not self.game.deg_pieces:
             self.window.blit(assets.BIGGERPIECES[self.game.player_to_move.color.text], (5, 5))
         else:
             self.window.blit(assets.BIGGERPIECESDEG[self.game.player_to_move.color.text], (5, 5))
@@ -117,12 +119,13 @@ class ActiveGameScreen(ScreenStateInterface):
             self.window.blit(assets.NUKEACTIVE, (15, 635))
         else:
             self.window.blit(assets.NUKEINACTIVE, (15, 635))
-        if not self.game.deg_nuke_text:
-            text = FONTS[120].render(str(self.player.nukes), True, RED.color)
-            self.window.blit(text, (90, 620))
-        else:
-            text = DEG_NUKE_FONT.render(str(self.player.nukes), True, RED.color)
-            self.window.blit(text, (90, 600))
+        if self.player.nukes > 0:
+            if not self.game.deg_nuke_text:
+                text = FONTS[120].render(str(self.player.nukes), True, RED.color)
+                self.window.blit(text, (90, 620))
+            else:
+                text = DEG_NUKE_FONT.render(str(self.player.nukes), True, RED.color)
+                self.window.blit(text, (90, 600))
 
         self.state.explosion_group.draw(self.window)
 

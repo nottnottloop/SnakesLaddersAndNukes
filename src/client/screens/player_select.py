@@ -11,6 +11,7 @@ class PlayerSelectScreen(ScreenStateInterface):
     def __init__(self, window: pygame.surface.Surface, state: ClientState):
         self.window = window
         self.state = state
+        self.connection_tried = False
         self.connection_failed = False
         self.color_buttons: dict[str, Button] = {
             "red": Button(window, state, 'Red', 375, 175, 200, 200, RED.color, RED.color, sound=assets.click, enabled=True),
@@ -32,7 +33,7 @@ class PlayerSelectScreen(ScreenStateInterface):
         return self.state.player
 
     def handle_event(self, event):
-        if event.type == pygame.MOUSEBUTTONUP and self.state.connected:
+        if event.type == pygame.MOUSEBUTTONUP:
             pos = pygame.mouse.get_pos()
             for btn in self.buttons.values():
                 if btn.click(pos):
@@ -42,45 +43,46 @@ class PlayerSelectScreen(ScreenStateInterface):
             pygame.event.post(pygame.event.Event(CHANGE_STATE, {"state": "menu_screen"}))
 
     def update(self, dt):
-        if self.state.connected:
-            self.state.game = self.state.network.send("get")
-        if not self.state.connected and not self.connection_failed:
+        if not self.connection_tried and not self.connection_failed:
             try:
+                self.connection_tried = True
                 self.state.network.connect()
                 self.state.game = self.state.network.send("get")
-            except Exception as e:
+            except Exception:
                 self.connection_failed = True
                 pygame.time.set_timer(FAILED_TO_CONNECT_TIMER, 1000)
             else:
-                self.state.connected = True
                 self.state.player_id = next(reversed(self.game.players.values())).player_id
                 print(f"Player ID {self.state.player_id}")
-        if not self.player.color:
-            for btn in self.color_buttons.values():
-                if btn.text in self.game.taken_colors:
-                    btn.disable()
-                else:
-                    btn.enable()
-        else:
-            [color_button.disable() for color_button in self.color_buttons.values()]
-            if self.player.ready:
-                self.buttons["ready_up_button"].disable()
+
+        if self.connection_tried and not self.connection_failed:
+            self.state.game = self.state.network.send("get")
+            if not self.player.color:
+                for btn in self.color_buttons.values():
+                    if btn.text in self.game.taken_colors:
+                        btn.disable()
+                    else:
+                        btn.enable()
             else:
-                self.buttons["ready_up_button"].enable()
-        if self.game.started:
-            pygame.event.post(pygame.event.Event(CHANGE_STATE, {"state": "active_game"}))
+                [color_button.disable() for color_button in self.color_buttons.values()]
+                if self.player.ready:
+                    self.buttons["ready_up_button"].disable()
+                else:
+                    self.buttons["ready_up_button"].enable()
+            if self.game.started:
+                pygame.event.post(pygame.event.Event(CHANGE_STATE, {"state": "active_game"}))
     
     def draw(self):
         draw_bg(self.window, self.state)
-        for btn in self.buttons.values():
-            btn.draw()
-        if not self.state.connected:
+        if not self.connection_tried and not self.connection_failed:
             self.text = FONTS[80].render("Connecting...", True, BLACK.color)
             blit_centered_text(self.window, self.text)
-        elif self.connection_failed:
+        elif self.connection_tried and self.connection_failed:
             text = FONTS[60].render("Failed to connect! :(", True, BLACK.color)
             blit_centered_text(self.window, text)
-        else:
+        elif self.connection_tried and not self.connection_failed:
+            for btn in self.buttons.values():
+                btn.draw()
             text = FONTS[25].render(f"Lobby: {str(self.game.game_id)}", True, BLACK.color)
             self.window.blit(text, (10, 10))
             if not self.player.color:

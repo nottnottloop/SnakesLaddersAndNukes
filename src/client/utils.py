@@ -28,7 +28,6 @@ class ClientState():
         self.screen_state: ScreenStateInterface
         self.clock = pygame.time.Clock()
         self.network = Network()
-        self.connected = False
         self.player_id = None
 
         self.music_degraded = 0
