@@ -67,7 +67,7 @@ class ActiveGameScreen(ScreenStateInterface):
             self.buttons["dice_button"].disable()
         
         # Pieces
-        if self.game.deg_piece_shake == 0:
+        if self.game.deg_piece_shake:
             if self.state.shake_direction:
                 self.state.shake_amount += 1
             else:
@@ -97,6 +97,14 @@ class ActiveGameScreen(ScreenStateInterface):
                         (BOARD_START_X + player.position.x * SQUARE_SIZE + offset_nudge + self.state.shake_amount,
                         BOARD_START_Y - player.position.y * SQUARE_SIZE + offset_nudge))
 
+        for movable in self.game.movables:
+            movable_draw_data = MOVABLE_DRAW_DATA[movable.sprite]
+            if not self.game.deg_snakes_and_ladders:
+                movable_sprite_to_draw = movable_draw_data.regular_sprite
+            else:
+                movable_sprite_to_draw = movable_draw_data.deg_sprite
+            self.window.blit(movable_sprite_to_draw, (117 + (movable.position.x * 51) + movable_draw_data.offset.x, 517 - (movable.position.y * 51) + movable_draw_data.offset.y))
+
         # UI
         for btn in self.buttons.values():
             btn.draw()
@@ -117,65 +125,6 @@ class ActiveGameScreen(ScreenStateInterface):
             self.window.blit(text, (90, 600))
 
         self.state.explosion_group.draw(self.window)
-
-    def draw_snakes_and_ladders(self):
-        if self.game.deg_snakes_and_ladders == 0:
-            for snake in range(3, -1, -1):
-                # y_offset, x_offset = calculate_offset(self.game.snakes[snake][0])
-                # if self.game.snakes[snake][3] == True:
-                #     x_offset += x_offset
-                if snake == 0:
-                    window.blit(assets.SNAKE1,
-                            (117 + (self.game.snakes[snake][0][0] * 51) - 19, 517 - (self.game.snakes[snake][0][1] * 51) + 33))
-                if snake == 1:
-                    window.blit(assets.SNAKE2,
-                            (117 + (self.game.snakes[snake][0][0] * 51) - 65, 517 - (self.game.snakes[snake][0][1] * 51) + 23))
-                if snake == 2:
-                    window.blit(assets.SNAKE3,
-                            (117 + (self.game.snakes[snake][0][0] * 51) + 10, 517 - (self.game.snakes[snake][0][1] * 51) + 20))
-                if snake == 3:
-                    window.blit(assets.SNAKE4,
-                            (117 + (self.game.snakes[snake][0][0] * 51) , 517 - (self.game.snakes[snake][0][1] * 51) + 28))
-            for ladder in range (3, -1, -1):
-                if ladder == 0:
-                    window.blit(assets.LADDER1,
-                            (117 + (self.game.ladders[ladder][0][0] * 51) + 15, 517 - (self.game.ladders[ladder][0][1] * 51) - 148))
-                if ladder == 1:
-                    window.blit(assets.LADDER2,
-                            (117 + (self.game.ladders[ladder][0][0] * 51) + 15, 517 - (self.game.ladders[ladder][0][1] * 51) - 79))
-                if ladder == 2:
-                    window.blit(assets.LADDER3,
-                            (117 + (self.game.ladders[ladder][0][0] * 51) - 41, 517 - (self.game.ladders[ladder][0][1] * 51) - 67))
-                if ladder == 3:
-                    window.blit(assets.LADDER4,
-                            (117 + (self.game.ladders[ladder][0][0] * 51) - 17, 517 - (self.game.ladders[ladder][0][1] * 51) - 240))
-        else:
-            for snake in range(3, -1, -1):
-                if snake == 0:
-                    window.blit(assets.SNAKE1DEG,
-                            (117 + (self.game.snakes[snake][0][0] * 51) - 19, 517 - (self.game.snakes[snake][0][1] * 51) + 33))
-                if snake == 1:
-                    window.blit(assets.SNAKE2DEG,
-                            (117 + (self.game.snakes[snake][0][0] * 51) - 65, 517 - (self.game.snakes[snake][0][1] * 51) + 23))
-                if snake == 2:
-                    window.blit(assets.SNAKE3DEG,
-                            (117 + (self.game.snakes[snake][0][0] * 51) + 10, 517 - (self.game.snakes[snake][0][1] * 51) + 20))
-                if snake == 3:
-                    window.blit(assets.SNAKE4DEG,
-                            (117 + (self.game.snakes[snake][0][0] * 51) , 517 - (self.game.snakes[snake][0][1] * 51) + 28))
-            for ladder in range (3, -1, -1):
-                if ladder == 0:
-                    window.blit(assets.LADDER1,
-                            (117 + (self.game.ladders[ladder][0][0] * 51) + 15, 517 - (self.game.ladders[ladder][0][1] * 51) - 148))
-                if ladder == 1:
-                    window.blit(assets.LADDER2DEG,
-                            (117 + (self.game.ladders[ladder][0][0] * 51) + 15, 517 - (self.game.ladders[ladder][0][1] * 51) - 79))
-                if ladder == 2:
-                    window.blit(assets.LADDER3,
-                            (117 + (self.game.ladders[ladder][0][0] * 51) - 41, 517 - (self.game.ladders[ladder][0][1] * 51) - 67))
-                if ladder == 3:
-                    window.blit(assets.LADDER4DEG,
-                            (117 + (self.game.ladders[ladder][0][0] * 51) - 17, 517 - (self.game.ladders[ladder][0][1] * 51) - 240))
 
     def draw_winner_window(self, p):
         font = pygame.font.SysFont("consolas", 70, bold=True)
