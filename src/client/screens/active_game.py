@@ -49,11 +49,11 @@ class ActiveGameScreen(ScreenStateInterface):
         for event in self.game.events:
             if event == "winner":
                 pygame.time.set_timer(WINNER, 5000)
+                pygame.mixer.music.stop()
                 if self.game.nukes_used == 0:
                     self.state.play_sound(assets.sound_pacifistwin)
                 else:
                     self.state.play_sound(assets.sound_nukewin)
-                pygame.mixer.music.stop()
             elif event == "nuke_collected":
                 self.state.play_sound(assets.nuke_get_sounds[random.randint(0, len(assets.nuke_get_sounds)) - 1])
             elif event == "nuke_used":

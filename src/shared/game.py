@@ -40,7 +40,7 @@ class Game:
         self.winner: Player = None
         self.dice_pips = random.randint(1, 6)
 
-        self.nukes_used = 0
+        self.nukes_used = 1
         self.min_num_of_nukes = 5
         self.max_num_of_nukes = 15
         # self.min_num_of_nukes = 98
@@ -107,6 +107,8 @@ class Game:
         for movable in movables_to_place:
             while True:
                 possible_position = Position(random.randint(0, 9), random.randint(0, 9))
+                if possible_position == Position(0, 9):
+                    continue
                 destination_pos = self.calculate_destination_position(possible_position, movable.vector)
                 if destination_pos.x < 0 or destination_pos.x > 9 or destination_pos.y < 0 or destination_pos.y > 9:
                     continue
@@ -153,7 +155,8 @@ class Game:
     def roll_dice(self, player: Player):
         if not self.player_to_move == player:
             return
-        self.dice_pips = random.randint(1, 6)
+        #self.dice_pips = random.randint(1, 6)
+        self.dice_pips = 1
         destination_number = player.board_number + self.dice_pips
         if destination_number > 100:
             destination_number = 100 - (destination_number - 100)
