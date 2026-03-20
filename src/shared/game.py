@@ -19,10 +19,11 @@ class Player:
         return POSITION_TO_BOARD_NUMBER[self.position]
     
 class Movable:
-    def __init__(self, position, vector, sprite):
+    def __init__(self, position, vector, sprite, type):
         self.position: Position = position
         self.vector: Position = vector
         self.sprite: str = sprite
+        self.type: str = type
 
 class Nuke:
     def __init__(self, position):
@@ -39,12 +40,13 @@ class Game:
         self.winner: Player = None
         self.dice_pips = random.randint(1, 6)
 
-        self.nuke_used_this_game = False
+        self.nukes_used = 0
         self.min_num_of_nukes = 5
         self.max_num_of_nukes = 15
         # self.min_num_of_nukes = 98
         # self.max_num_of_nukes = 98
 
+        self.events: list[str] = []
         self.movables: list[Movable] = []
         self.nukes: list[Position] = []
         self.generate_objects()
@@ -91,14 +93,14 @@ class Game:
 
     def generate_objects(self):
         movables_to_place = [
-            Movable(None, Position(-1, -1), "snake1"),
-            Movable(None, Position(-2, -2), "snake2"),
-            Movable(None, Position(0, -6), "snake3"),
-            Movable(None, Position(3, -5), "snake4"),
-            Movable(None, Position(3, 3), "ladder1"),
-            Movable(None, Position(0, 2), "ladder2"),
-            Movable(None, Position(-1, 2), "ladder3"),
-            Movable(None, Position(0, 5), "ladder4"),
+            Movable(None, Position(-1, -1), "snake1", "snake"),
+            Movable(None, Position(-2, -2), "snake2", "snake"),
+            Movable(None, Position(0, -6), "snake3", "snake"),
+            Movable(None, Position(3, -5), "snake4", "snake"),
+            Movable(None, Position(3, 3), "ladder1", "ladder"),
+            Movable(None, Position(0, 2), "ladder2", "ladder"),
+            Movable(None, Position(-1, 2), "ladder3", "ladder"),
+            Movable(None, Position(0, 5), "ladder4", "ladder"),
         ]
         random.shuffle(movables_to_place)
 
@@ -134,6 +136,7 @@ class Game:
         for i, nuke_position in enumerate(self.nukes):
             if player.position == nuke_position:
                 player.nukes += 1
+                self.events.append("nuke_collected")
                 del self.nukes[i]
 
     def check_player_iteraction(self, player: Player):
@@ -141,6 +144,7 @@ class Game:
         for movable in self.movables:
             if player.position == movable.position:
                 player.position = self.calculate_destination_position(player.position, movable.vector)
+                self.events.append(movable.type)
         self.potentially_collect_nuke(player)
 
     def roll_dice(self, player: Player):
@@ -156,7 +160,8 @@ class Game:
 
     def nuke(self, player: Player):
         player.nukes -= 1
-        self.nuke_used_this_game = True
+        self.nukes_used += 1
+        self.events.append("nuke_used")
         self.degrade()
         for player in self.players.values():
             player.position = Position(random.randint(0, 9), random.randint(0, 8))

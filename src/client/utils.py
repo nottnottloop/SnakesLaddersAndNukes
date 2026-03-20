@@ -33,12 +33,8 @@ class ClientState():
         self.music_degraded = 0
         self.sound_enabled = True
 
-        self.ticks_passed = 0
-        self.distance_x, self.distance_y = 0, 0
-
         self.shake_amount = 0
         self.shake_direction = True
-        self.explosion_group = pygame.sprite.Group()
 
     @property
     def player(self) -> Player:

@@ -10,6 +10,7 @@ class MenuScreen(ScreenStateInterface):
         self.window = window
         self.state = state
         self.explosion_easter_egg_counter = 0
+        self.explosion_group = pygame.sprite.Group()
         self.buttons: dict[str, Button] = {
             "mute_button": Button(window, state, 'Mute', 600, 590, 100, 100, WHITE.color, WHITE.color, image=assets.UNMUTED, enabled=True),
             "start_game_button": Button(window, state, 'Start Game', 420, 450, 275, 110, BLACK.color, WHITE.color, sound=assets.click, enabled=True),
@@ -29,15 +30,15 @@ class MenuScreen(ScreenStateInterface):
                     self.buttons["mute_button"].image = assets.MUTED
             self.explosion_easter_egg_counter += 1
             if self.explosion_easter_egg_counter > 10:
-                self.state.explosion_group.add(Explosion())
+                self.explosion_group.add(Explosion())
 
     def update(self, dt):
-        self.state.explosion_group.update()
+        self.explosion_group.update()
 
     def draw(self):
         draw_bg(self.window, self.state)
         self.window.blit(assets.TITLE3, (0, 0))
         self.buttons["start_game_button"].draw()
         self.buttons["mute_button"].draw()
-        self.state.explosion_group.draw(self.window)
+        self.explosion_group.draw(self.window)
 

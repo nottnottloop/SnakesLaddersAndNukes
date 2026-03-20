@@ -62,6 +62,7 @@ def threaded_client(conn, addr, player_id, game_id):
                 elif data in ("-1", "1", "2", "3", "4", "5", "6"):
                     game.move_player(player, int(data))
                 conn.sendall(pickle.dumps(game))
+                game.events = []
             else:
                 break
         except:

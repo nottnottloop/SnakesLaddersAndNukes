@@ -1,4 +1,5 @@
 import pygame
+import random
 from .. import load_assets as assets
 from ..button import Button
 from ..explosion import Explosion
@@ -15,6 +16,7 @@ class ActiveGameScreen(ScreenStateInterface):
             "dice_button": Button(window, state, 'roll', 550, 625, 100, 100, BLACK.color, WHITE.color, border_radius=100, sound=assets.dice),
             "nuke_button": Button(window, state, 'NUKE', 295, 615, 130, 130, RED.color, WHITE.color, border_radius=50, sound=assets.click),
         }
+        self.explosion_group = pygame.sprite.Group()
 
     @property
     def game(self) -> Game:
@@ -54,7 +56,19 @@ class ActiveGameScreen(ScreenStateInterface):
         except Exception:
             print("Couldn't get game, booting back to menu screen")
             pygame.event.post(pygame.event.Event(CHANGE_STATE, {"state": "menu_screen"}))
-        self.state.explosion_group.update()
+        
+        self.explosion_group.update()
+
+        for object in self.game.events:
+            if object == "nuke_collected":
+                assets.nuke_get_sounds[random.randint(0, len(assets.nuke_get_sounds)) - 1].play()
+            elif object == "nuke_used":
+                assets.explosion.play()
+                self.explosion_group.add(Explosion())
+            elif object == "snake":
+                assets.snake.play()
+            elif object == "ladder":
+                assets.ladder.play()
 
         # Dice
         if self.game.player_to_move == self.player:
@@ -127,7 +141,7 @@ class ActiveGameScreen(ScreenStateInterface):
                 text = DEG_NUKE_FONT.render(str(self.player.nukes), True, RED.color)
                 self.window.blit(text, (90, 600))
 
-        self.state.explosion_group.draw(self.window)
+        self.explosion_group.draw(self.window)
 
     def draw_winner_window(self, p):
         font = pygame.font.SysFont("consolas", 70, bold=True)
