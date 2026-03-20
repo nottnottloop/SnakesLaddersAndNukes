@@ -37,11 +37,14 @@ class Button:
         y1 = pos[1]
         if self.x <= x1 <= self.x + self.width and self.y <= y1 <= self.y + self.height and self.enabled:
             self.callback()
-            if self.sound and self.state.sound_enabled:
-                self.sound.play()
+            self.play_button_sound()
             return True
         else:
             return False
+        
+    def play_button_sound(self):
+        if self.sound and self.state.sound_enabled:
+            self.sound.play()
     
     def enable(self):
         self.enabled = True

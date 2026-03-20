@@ -20,6 +20,7 @@ class PlayerSelectScreen(ScreenStateInterface):
         }
         self.lobby_buttons: dict[str, Button] = {
             "ready_up_button": Button(window, state, 'Ready Up', 225, 450, 300, 150, BLACK.color, WHITE.color),
+            "debug_enable": Button(window, state, 'debug', 10, 10, 125, 25, WHITE.color, WHITE.color, enabled=True, sound=None),
         }
         self.buttons: dict[str, Button] = self.color_buttons | self.lobby_buttons
     
@@ -70,6 +71,13 @@ class PlayerSelectScreen(ScreenStateInterface):
                     self.buttons["ready_up_button"].enable()
             if self.game.started:
                 pygame.event.post(pygame.event.Event(CHANGE_STATE, {"state": "active_game"}))
+
+        for event in self.game.events:
+            if event == "debug":
+                if self.game.debug:
+                    self.state.play_sound(assets.sound_debug_enable)
+                else:
+                    self.state.play_sound(assets.sound_debug_disable)
     
     def draw(self):
         draw_bg(self.window, self.state)

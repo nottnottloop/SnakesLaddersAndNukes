@@ -1,3 +1,4 @@
 __pycache__
 gameconfig.ini
 serverconfig.ini
+.DS_Store

@@ -12,6 +12,8 @@ from .screens.active_game import ActiveGameScreen
 pygame.font.init()
 pygame.display.set_icon(assets.ICON)
 pygame.display.set_caption("Snakes, Ladders and Nukes")
+pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=512)
+pygame.mixer.set_num_channels(32)
 
 window: pygame.surface.Surface = pygame.display.set_mode((WIDTH, HEIGHT))
 state = ClientState()

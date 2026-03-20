@@ -55,6 +55,8 @@ def threaded_client(conn, addr, player_id, game_id):
                         game.roll_dice(player)
                     elif data == "NUKE":
                         game.nuke(player)
+                    elif data == "debug":
+                        game.toggle_debug()
                     # Debug
                     if game.debug:
                         if data in ("Up", "Down", "Right", "Left"):

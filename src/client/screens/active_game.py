@@ -34,8 +34,16 @@ class ActiveGameScreen(ScreenStateInterface):
                 for btn in self.buttons.values():
                     if btn.click(pos):
                         self.state.network.send(btn.text)
-        # Debug
         elif event.type == pygame.KEYDOWN:
+            if not self.game.winner:
+                if event.key == pygame.K_r:
+                    self.state.network.send(self.buttons["dice_button"].text)
+                    self.buttons["dice_button"].play_button_sound()
+                elif event.key == pygame.K_n:
+                    self.state.network.send(self.buttons["nuke_button"].text)
+                    if self.player.nukes > 0:
+                        self.buttons["nuke_button"].play_button_sound()
+            # Debug
             if event.key == pygame.K_UP:
                 self.state.network.send("Up")
             elif event.key == pygame.K_DOWN:
@@ -44,7 +52,7 @@ class ActiveGameScreen(ScreenStateInterface):
                 self.state.network.send("Right")
             elif event.key == pygame.K_LEFT:
                 self.state.network.send("Left")
-            elif event.key == pygame.K_r:
+            elif event.key == pygame.K_k:
                 self.state.network.send("generate_objects")
         elif event.type == WINNER:
             pygame.time.set_timer(WINNER, 0)
@@ -59,7 +67,7 @@ class ActiveGameScreen(ScreenStateInterface):
 
         # Debug
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_t]:
+        if keys[pygame.K_l]:
             self.state.network.send("generate_objects")
         
         self.explosion_group.update()
@@ -150,7 +158,7 @@ class ActiveGameScreen(ScreenStateInterface):
         else:
             self.window.blit(assets.BIGGERPIECESDEG[self.game.player_to_move.color.text], (5, 5))
 
-        # Nuke icon (not button)
+        # Nuke icon and counter
         if self.player.nukes > 0:
             self.window.blit(assets.NUKEACTIVE, (15, 635))
         else:
@@ -158,10 +166,10 @@ class ActiveGameScreen(ScreenStateInterface):
         if self.player.nukes > 0:
             if not self.game.deg_nuke_text:
                 text = FONTS[120].render(str(self.player.nukes), True, RED.color)
-                self.window.blit(text, (90, 620))
+                self.window.blit(text, (80, 610))
             else:
                 text = DEG_NUKE_FONT.render(str(self.player.nukes), True, RED.color)
-                self.window.blit(text, (90, 600))
+                self.window.blit(text, (80, 610))
 
         # Winner text
         if self.game.winner:

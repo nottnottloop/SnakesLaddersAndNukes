@@ -29,7 +29,7 @@ class Nuke:
 
 class Game:
     def __init__(self, game_id):
-        self.debug = True
+        self.debug = False
         self.game_id: int = game_id
         self.started = False
         
@@ -40,10 +40,7 @@ class Game:
         self.dice_pips = random.randint(1, 6)
 
         self.nukes_used = 0
-        self.min_num_of_nukes = 5
-        self.max_num_of_nukes = 15
-        # self.min_num_of_nukes = 98
-        # self.max_num_of_nukes = 98
+        self.nukes_to_generate = (5, 15)
 
         self.events: list[str] = []
         self.movables: list[Movable] = []
@@ -129,7 +126,7 @@ class Game:
                     self.movables.append(movable)
                     break
 
-        for _ in range(random.randint(self.min_num_of_nukes, self.max_num_of_nukes)):
+        for _ in range(random.randint(self.nukes_to_generate[0], self.nukes_to_generate[1])):
             while True:
                 possible_position = Position(random.randint(0, 9), random.randint(0, 9))
                 if possible_position == (0, 0) or possible_position == (0, 9) or possible_position in self.nukes:
@@ -167,15 +164,16 @@ class Game:
         self.player_to_move = next(self.player_cycle)
 
     def nuke(self, player: Player):
-        player.nukes -= 1
-        self.nukes_used += 1
-        self.events.append("nuke_used")
-        if self.nukes_used == 7:
-            self.events.append("music_change")
-        self.degrade()
-        for player in self.players.values():
-            player.position = Position(random.randint(0, 9), random.randint(0, 8))
-            self.check_player_interaction(player)
+        if player.nukes > 0:
+            player.nukes -= 1
+            self.nukes_used += 1
+            self.events.append("nuke_used")
+            if self.nukes_used == 7:
+                self.events.append("music_change")
+            self.degrade()
+            for player in self.players.values():
+                player.position = Position(random.randint(0, 9), random.randint(0, 8))
+                self.check_player_interaction(player)
 
     def degrade(self):
         tokens = 1
@@ -217,6 +215,10 @@ class Game:
                 tokens -= 1
 
     # Debug code
+    def toggle_debug(self):
+        self.debug = not self.debug
+        self.events.append("debug")
+
     def debug_move(self, player: Player, direction):
         if direction == "Up":
             player.position = Position(player.position.x, player.position.y + 1)
