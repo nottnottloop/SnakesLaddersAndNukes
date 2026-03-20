@@ -10,6 +10,7 @@ HEIGHT = 750
 
 CHANGE_STATE = pygame.USEREVENT + 1
 FAILED_TO_CONNECT_TIMER = pygame.USEREVENT + 2
+WINNER = pygame.USEREVENT + 2
 
 SQUARE_SIZE = 51
 BOARD_START_X = 117
@@ -21,6 +22,7 @@ FONTS = {
     50: pygame.font.SysFont("consolas", 50),
     60: pygame.font.SysFont("consolas", 60),
     80: pygame.font.SysFont("consolas", 80),
+    90: pygame.font.SysFont("consolas", 90),
     120: pygame.font.SysFont("consolas", 120),
 }
 

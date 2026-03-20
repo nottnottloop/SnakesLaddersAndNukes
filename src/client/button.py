@@ -1,9 +1,10 @@
 import pygame
 from ..shared.constants import * 
 from .utils import ClientState
+from .load_assets import *
 
 class Button:
-    def __init__(self, window, state: ClientState, text, x, y, width, height, color=WHITE.color, text_color=BLACK.color, enabled=False, border_radius=-1, sound=None, image=None, callback=lambda *args, **kwargs: None):
+    def __init__(self, window, state: ClientState, text, x, y, width, height, color=WHITE.color, text_color=BLACK.color, enabled=False, border_radius=-1, sound=sound_click, image=None, callback=lambda *args, **kwargs: None):
         self.window = window
         self.state = state
         self.text = text

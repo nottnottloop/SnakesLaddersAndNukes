@@ -46,23 +46,24 @@ def threaded_client(conn, addr, player_id, game_id):
 
             if game_id in games:
                 game = games[game_id]
-                if data in (COLOR_MAP.keys()):
-                    game.set_player_color(player, data)
-                elif data == "Ready Up":
-                    game.set_player_ready(player)
-                elif data == "roll":
-                    game.roll_dice(player)
-                elif data == "NUKE":
-                    game.nuke(player)
-                # Debug
-                elif data == "debug":
-                    game.activate_debug(player)
-                elif data in ("Up", "Down", "Left", "Right"):
-                    game.debug_move(player, data)
-                elif data in ("-1", "1", "2", "3", "4", "5", "6"):
-                    game.move_player(player, int(data))
-                conn.sendall(pickle.dumps(game))
                 game.events = []
+                if not game.winner:
+                    if data in (COLOR_MAP.keys()):
+                        game.set_player_color(player, data)
+                    elif data == "Ready Up":
+                        game.set_player_ready(player)
+                    elif data == "roll":
+                        game.roll_dice(player)
+                    elif data == "NUKE":
+                        game.nuke(player)
+                    # Debug
+                    elif data == "debug":
+                        game.activate_debug(player)
+                    elif data in ("Up", "Down", "Left", "Right"):
+                        game.debug_move(player, data)
+                    elif data in ("-1", "1", "2", "3", "4", "5", "6"):
+                        game.move_player(player, int(data))
+                conn.sendall(pickle.dumps(game))
             else:
                 break
         except:

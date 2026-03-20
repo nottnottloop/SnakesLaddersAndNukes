@@ -170,9 +170,9 @@ for i in range(12):
     EXPLOSION_IMAGES.append(img)
 
 # audio
-papers_please = audio_dir / "papers_please.mp3"
-but_nobody_came = audio_dir / "but_nobody_came.mp3"
-genocide = audio_dir / "genocide.mp3"
+music_papers_please = audio_dir / "papers_please.mp3"
+music_but_nobody_came = audio_dir / "but_nobody_came.mp3"
+music_genocide = audio_dir / "genocide.mp3"
 
 nuke_get_sounds = []
 for i in range(1, 6):
@@ -180,15 +180,15 @@ for i in range(1, 6):
     sound.set_volume(0.15)
     nuke_get_sounds.append(sound)
 
-click = pygame.mixer.Sound(audio_dir / "click.mp3")
-dice = pygame.mixer.Sound(audio_dir / "dice.mp3")
-explosion = pygame.mixer.Sound(audio_dir / "explosion.mp3")
-explosion.set_volume(0.1)
-nukewin = pygame.mixer.Sound(audio_dir / "nukewin.mp3")
-nukewin.set_volume(1)
-pacifistwin = pygame.mixer.Sound(audio_dir / "pacifistwin.mp3")
-pacifistwin.set_volume(0.1)
-ladder = pygame.mixer.Sound(audio_dir / "ladder.mp3")
-ladder.set_volume(0.2)
-snake = pygame.mixer.Sound(audio_dir / "snake.mp3")
-snake.set_volume(0.2)
+sound_click = pygame.mixer.Sound(audio_dir / "click.mp3")
+sound_dice = pygame.mixer.Sound(audio_dir / "dice.mp3")
+sound_explosion = pygame.mixer.Sound(audio_dir / "explosion.mp3")
+sound_explosion.set_volume(0.1)
+sound_nukewin = pygame.mixer.Sound(audio_dir / "nukewin.mp3")
+sound_nukewin.set_volume(1)
+sound_pacifistwin = pygame.mixer.Sound(audio_dir / "pacifistwin.mp3")
+sound_pacifistwin.set_volume(0.1)
+sound_ladder = pygame.mixer.Sound(audio_dir / "ladder.mp3")
+sound_ladder.set_volume(0.2)
+sound_snake = pygame.mixer.Sound(audio_dir / "snake.mp3")
+sound_snake.set_volume(0.2)

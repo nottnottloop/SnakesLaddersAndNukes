@@ -13,7 +13,7 @@ class MenuScreen(ScreenStateInterface):
         self.explosion_group = pygame.sprite.Group()
         self.buttons: dict[str, Button] = {
             "mute_button": Button(window, state, 'Mute', 600, 590, 100, 100, WHITE.color, WHITE.color, image=assets.UNMUTED, enabled=True),
-            "start_game_button": Button(window, state, 'Start Game', 420, 450, 275, 110, BLACK.color, WHITE.color, sound=assets.click, enabled=True),
+            "start_game_button": Button(window, state, 'Start Game', 420, 450, 275, 110, BLACK.color, WHITE.color, enabled=True),
         }
 
     def handle_event(self, event):

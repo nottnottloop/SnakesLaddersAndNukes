@@ -8,7 +8,7 @@ from ..shared.constants import *
 class Player:
     def __init__(self, player_id):
         self.player_id = player_id
-        self.position: Position = Position(0, 0)
+        self.position: Position = Position(1, 9)
         self.color: Color | None = None
         self.nukes = 999
         self.ready = False
@@ -139,7 +139,10 @@ class Game:
                 self.events.append("nuke_collected")
                 del self.nukes[i]
 
-    def check_player_iteraction(self, player: Player):
+    def check_player_interaction(self, player: Player):
+        if POSITION_TO_BOARD_NUMBER[player.position] == 100:
+            self.winner = player
+            self.events.append("winner")
         self.potentially_collect_nuke(player)
         for movable in self.movables:
             if player.position == movable.position:
@@ -155,17 +158,19 @@ class Game:
         if destination_number > 100:
             destination_number = 100 - (destination_number - 100)
         player.position = BOARD_NUMBER_TO_POSITION[destination_number]
-        self.check_player_iteraction(player)
+        self.check_player_interaction(player)
         self.player_to_move = next(self.player_cycle)
 
     def nuke(self, player: Player):
         player.nukes -= 1
         self.nukes_used += 1
         self.events.append("nuke_used")
+        if self.nukes_used == 7:
+            self.events.append("music_change")
         self.degrade()
         for player in self.players.values():
             player.position = Position(random.randint(0, 9), random.randint(0, 8))
-            self.check_player_iteraction(player)
+            self.check_player_interaction(player)
 
     def degrade(self):
         tokens = 1
@@ -226,4 +231,4 @@ class Game:
             player.x -= 1
         if direction == "Right":
             player.x += 1
-        self.check_player_iteraction(player)
+        self.check_player_interaction(player)

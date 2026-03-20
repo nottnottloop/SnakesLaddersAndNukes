@@ -14,13 +14,13 @@ class PlayerSelectScreen(ScreenStateInterface):
         self.connection_tried = False
         self.connection_failed = False
         self.color_buttons: dict[str, Button] = {
-            "red": Button(window, state, 'Red', 375, 175, 200, 200, RED.color, RED.color, sound=assets.click, enabled=True),
-            "green": Button(window, state, 'Green', 375, 375, 200, 200, GREEN.color, GREEN.color, sound=assets.click, enabled=True),
-            "blue": Button(window, state, 'Blue', 175, 175, 200, 200, BLUE.color, BLUE.color, sound=assets.click, enabled=True),
-            "yellow": Button(window, state, 'Yellow', 175, 375, 200, 200, YELLOW.color, YELLOW.color, sound=assets.click, enabled=True),
+            "red": Button(window, state, 'Red', 375, 175, 200, 200, RED.color, RED.color, enabled=True),
+            "green": Button(window, state, 'Green', 375, 375, 200, 200, GREEN.color, GREEN.color, enabled=True),
+            "blue": Button(window, state, 'Blue', 175, 175, 200, 200, BLUE.color, BLUE.color, enabled=True),
+            "yellow": Button(window, state, 'Yellow', 175, 375, 200, 200, YELLOW.color, YELLOW.color, enabled=True),
         }
         self.lobby_buttons: dict[str, Button] = {
-            "ready_up_button": Button(window, state, 'Ready Up', 225, 450, 300, 150, BLACK.color, WHITE.color, sound=assets.click),
+            "ready_up_button": Button(window, state, 'Ready Up', 225, 450, 300, 150, BLACK.color, WHITE.color),
         }
         self.buttons: dict[str, Button] = self.color_buttons | self.lobby_buttons
     

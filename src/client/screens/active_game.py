@@ -13,10 +13,11 @@ class ActiveGameScreen(ScreenStateInterface):
         self.window = window
         self.state = state
         self.buttons: dict[str, Button] = {
-            "dice_button": Button(window, state, 'roll', 550, 625, 100, 100, BLACK.color, WHITE.color, border_radius=100, sound=assets.dice),
-            "nuke_button": Button(window, state, 'NUKE', 295, 615, 130, 130, RED.color, WHITE.color, border_radius=50, sound=assets.click),
+            "dice_button": Button(window, state, 'roll', 550, 625, 100, 100, BLACK.color, WHITE.color, border_radius=100, sound=assets.sound_dice),
+            "nuke_button": Button(window, state, 'NUKE', 295, 615, 130, 130, RED.color, WHITE.color, border_radius=50),
         }
         self.explosion_group = pygame.sprite.Group()
+        self.started_music = False
 
     @property
     def game(self) -> Game:
@@ -26,29 +27,15 @@ class ActiveGameScreen(ScreenStateInterface):
     def player(self) -> Player:
         return self.state.player
 
-            #if self.game.started:
-            #    if not music_set and self.sound_enabled:
-            #        pygame.mixer.music.load(assets.papers_please)
-            #        pygame.mixer.music.set_volume(0.1)
-            #        pygame.mixer.music.play(-1)
-            #        music_set = True
-            #    if nukes_used == 7 and self.music_degraded == 0:
-            #        pygame.mixer.music.load(assets.but_nobody_came)
-            #        pygame.mixer.music.set_volume(0.1)
-            #        pygame.mixer.music.play(-1)
-            #        self.music_degraded = 1
-            #    if self.music_degraded == 1:
-            #        # pygame.mixer.music.load(assets.genocide)
-            #        pygame.mixer.music.load(assets.but_nobody_came)
-            #        pygame.mixer.music.set_volume(0.1)
-            #        pygame.mixer.music.play(-1)
-            #        self.music_degraded = 2
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONUP:
             pos = pygame.mouse.get_pos()
             for btn in self.buttons.values():
                 if btn.click(pos):
                     self.state.network.send(btn.text)
+        elif event.type == WINNER:
+            pygame.time.set_timer(WINNER, 0)
+            pygame.event.post(pygame.event.Event(CHANGE_STATE, {"state": "menu_screen"}))
 
     def update(self, dt):
         try:
@@ -59,16 +46,29 @@ class ActiveGameScreen(ScreenStateInterface):
         
         self.explosion_group.update()
 
-        for object in self.game.events:
-            if object == "nuke_collected":
-                assets.nuke_get_sounds[random.randint(0, len(assets.nuke_get_sounds)) - 1].play()
-            elif object == "nuke_used":
-                assets.explosion.play()
+        for event in self.game.events:
+            if event == "winner":
+                pygame.time.set_timer(WINNER, 5000)
+                if self.game.nukes_used == 0:
+                    self.state.play_sound(assets.sound_pacifistwin)
+                else:
+                    self.state.play_sound(assets.sound_nukewin)
+                pygame.mixer.music.stop()
+            elif event == "nuke_collected":
+                self.state.play_sound(assets.nuke_get_sounds[random.randint(0, len(assets.nuke_get_sounds)) - 1])
+            elif event == "nuke_used":
+                self.state.play_sound(assets.sound_explosion)
                 self.explosion_group.add(Explosion())
-            elif object == "snake":
-                assets.snake.play()
-            elif object == "ladder":
-                assets.ladder.play()
+            elif event == "snake":
+                self.state.play_sound(assets.sound_snake)
+            elif event == "ladder":
+                self.state.play_sound(assets.sound_ladder)
+            elif event == "music_change":
+                self.state.play_music(assets.music_but_nobody_came)
+
+        if not self.started_music:
+            self.state.play_music(assets.music_papers_please)
+            self.started_music = True
 
         # Dice
         if self.game.player_to_move == self.player:
@@ -141,33 +141,18 @@ class ActiveGameScreen(ScreenStateInterface):
                 text = DEG_NUKE_FONT.render(str(self.player.nukes), True, RED.color)
                 self.window.blit(text, (90, 600))
 
-        self.explosion_group.draw(self.window)
+        if self.game.winner:
+            text = FONTS[90].render("ERROR", True, self.game.winner.color.color)
+            if self.game.winner == self.player:
+                if self.game.nukes_used == 0:
+                    text = FONTS[90].render("YOU WON! :D", True, self.game.winner.color.color)
+                else:
+                    text = FONTS[90].render("You won...", True, self.game.winner.color.color)
+            else:
+                if self.game.num_nukes_used == 0:
+                    text = FONTS[90].render(f"{self.game.winner} WON! :)", True, self.game.winner.color.color)
+                else:
+                    text = FONTS[90].render(f"{self.game.winner} won...", True, self.game.winner.color.color)
+            blit_centered_text(self.window, text, y_offset=-325)
 
-    def draw_winner_window(self, p):
-        font = pygame.font.SysFont("consolas", 70, bold=True)
-        text = font.render("ERROR", True, parse_color(self.game.players[self.game.winner][1]))
-        if self.game.winner == p:
-            if self.game.num_nukes_used == 0:
-                text = font.render("YOU WON! :D", True, parse_color(self.game.players[self.game.winner][1]))
-                if self.sound_enabled:
-                    assets.pacifistwin.play()
-                pygame.mixer.music.stop()
-            if self.game.num_nukes_used >= 1:
-                text = font.render("You won...", True, parse_color(self.game.players[self.game.winner][1]))
-                if self.sound_enabled:
-                    assets.nukewin.play()
-                if self.game.deg_music == 0:
-                    pygame.mixer.music.stop()
-        else:
-            if self.game.num_nukes_used == 0:
-                text = font.render(self.game.players[self.game.winner][1].upper() + " WON! :)", True, parse_color(self.game.players[self.game.winner][1]))
-                if self.sound_enabled:
-                    assets.pacifistwin.play()
-                pygame.mixer.music.stop()
-            if self.game.num_nukes_used >= 1:
-                text = font.render(self.game.players[self.game.winner][1] + " won...", True, parse_color(self.game.players[self.game.winner][1]))
-                if self.sound_enabled:
-                    assets.nukewin.play()
-                if self.game.deg_music == 0:
-                    pygame.mixer.music.stop()
-        blit_centered_text(window, text, y_offset=-325)
+        self.explosion_group.draw(self.window)

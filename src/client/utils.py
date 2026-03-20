@@ -30,11 +30,20 @@ class ClientState():
         self.network = Network()
         self.player_id = None
 
-        self.music_degraded = 0
         self.sound_enabled = True
 
         self.shake_amount = 0
         self.shake_direction = True
+
+    def play_sound(self, sound):
+        if self.sound_enabled:
+            sound.play()
+    
+    def play_music(self, music):
+        if self.sound_enabled:
+            pygame.mixer.music.load(music)
+            pygame.mixer.music.set_volume(0.1)
+            pygame.mixer.music.play(-1)
 
     @property
     def player(self) -> Player:
