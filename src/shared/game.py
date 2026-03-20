@@ -1,18 +1,16 @@
 import random
 from itertools import cycle
 
-from ..shared.debug import DEBUG_FLAGS
 from ..shared.constants import *
 
 
 class Player:
     def __init__(self, player_id):
         self.player_id = player_id
-        self.position: Position = Position(1, 9)
+        self.position: Position = Position(0, 0)
         self.color: Color | None = None
-        self.nukes = 999
+        self.nukes = 0
         self.ready = False
-        self.debug = False
     
     @property
     def board_number(self):
@@ -31,6 +29,7 @@ class Nuke:
 
 class Game:
     def __init__(self, game_id):
+        self.debug = True
         self.game_id: int = game_id
         self.started = False
         
@@ -40,7 +39,7 @@ class Game:
         self.winner: Player = None
         self.dice_pips = random.randint(1, 6)
 
-        self.nukes_used = 1
+        self.nukes_used = 0
         self.min_num_of_nukes = 5
         self.max_num_of_nukes = 15
         # self.min_num_of_nukes = 98
@@ -59,8 +58,6 @@ class Game:
         self.deg_snakes_and_ladders = 0
         self.deg_piece_shake = 0
         self.deg_music = 0
-
-        # self.debug = False
 
     @property
     def taken_colors(self) -> set[str]:
@@ -83,6 +80,10 @@ class Game:
             self.player_cycle = cycle(self.players.values())
             self.player_to_move = next(self.player_cycle)
             self.started = True
+            if self.debug:
+                for player in self.players.values():
+                    player.nukes = 100
+                    player.position = Position(5, 5)
 
     def player_lost_connection(self, player: Player):
         del self.players[player.player_id]
@@ -92,17 +93,19 @@ class Game:
         return Position(start_pos.x + vector.x, start_pos.y + vector.y)
 
     def generate_objects(self):
+        self.movables = []
+        self.nukes = []
         movables_to_place = [
-            Movable(None, Position(-1, -1), "snake1", "snake"),
             Movable(None, Position(-2, -2), "snake2", "snake"),
             Movable(None, Position(0, -6), "snake3", "snake"),
             Movable(None, Position(3, -5), "snake4", "snake"),
+            # Make the little snake1 render above the other, snakier snakes
+            Movable(None, Position(-1, -1), "snake1", "snake"),
             Movable(None, Position(3, 3), "ladder1", "ladder"),
             Movable(None, Position(0, 2), "ladder2", "ladder"),
             Movable(None, Position(-1, 2), "ladder3", "ladder"),
             Movable(None, Position(0, 5), "ladder4", "ladder"),
         ]
-        random.shuffle(movables_to_place)
 
         for movable in movables_to_place:
             while True:
@@ -155,8 +158,7 @@ class Game:
     def roll_dice(self, player: Player):
         if not self.player_to_move == player:
             return
-        #self.dice_pips = random.randint(1, 6)
-        self.dice_pips = 1
+        self.dice_pips = random.randint(1, 6)
         destination_number = player.board_number + self.dice_pips
         if destination_number > 100:
             destination_number = 100 - (destination_number - 100)
@@ -215,23 +217,14 @@ class Game:
                 tokens -= 1
 
     # Debug code
-    def activate_debug(self, player: Player):
-        self.set_player_color(player, "Red")
-        player.ready = True
-
-    def debug_give_stuff(self, player: Player):
-        if DEBUG_FLAGS.get("let_there_be_nukes"):
-            player.nukes = 100
-        if DEBUG_FLAGS.get("i_just_want_to_win"):
-            player.position = (1, 9)
-
     def debug_move(self, player: Player, direction):
         if direction == "Up":
-            player.y += 1
-        if direction == "Down":
-            player.y -= 1
-        if direction == "Left":
-            player.x -= 1
-        if direction == "Right":
-            player.x += 1
-        self.check_player_interaction(player)
+            player.position = Position(player.position.x, player.position.y + 1)
+        elif direction == "Down":
+            player.position = Position(player.position.x, player.position.y - 1)
+        elif direction == "Right":
+            player.position = Position(player.position.x + 1, player.position.y)
+        elif direction == "Left":
+            player.position = Position(player.position.x - 1, player.position.y)
+        if player.position in POSITION_TO_BOARD_NUMBER:
+            self.check_player_interaction(player)

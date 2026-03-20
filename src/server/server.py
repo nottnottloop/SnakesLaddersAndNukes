@@ -4,7 +4,6 @@ import pickle
 import configparser
 
 from ..shared.game import Game, Player
-from ..shared.debug import DEBUG_FLAGS
 from ..shared.constants import *
 config = configparser.ConfigParser()
 
@@ -57,12 +56,11 @@ def threaded_client(conn, addr, player_id, game_id):
                     elif data == "NUKE":
                         game.nuke(player)
                     # Debug
-                    elif data == "debug":
-                        game.activate_debug(player)
-                    elif data in ("Up", "Down", "Left", "Right"):
-                        game.debug_move(player, data)
-                    elif data in ("-1", "1", "2", "3", "4", "5", "6"):
-                        game.move_player(player, int(data))
+                    if game.debug:
+                        if data in ("Up", "Down", "Right", "Left"):
+                            game.debug_move(player, data)
+                        elif data == "generate_objects":
+                            game.generate_objects()
                 conn.sendall(pickle.dumps(game))
             else:
                 break

@@ -5,7 +5,6 @@ from .. import load_assets as assets
 from ..button import Button
 from ..utils import *
 from src.shared.game import Game, Player
-from src.shared.debug import DEBUG_FLAGS
 
 class PlayerSelectScreen(ScreenStateInterface):
     def __init__(self, window: pygame.surface.Surface, state: ClientState):
