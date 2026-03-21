@@ -5,6 +5,8 @@ from .. import load_assets as assets
 from ..button import Button
 from ..utils import *
 
+READY_UP_BUTTON_COORDS = Position(25, 40)
+
 class PlayerSelectScreen(ScreenStateInterface):
     def __init__(self, window: pygame.surface.Surface, state: ClientState):
         self.window = window
@@ -18,7 +20,8 @@ class PlayerSelectScreen(ScreenStateInterface):
             "yellow": Button(window, state, 'Yellow', 175, 375, 200, 200, YELLOW.color, YELLOW.color, enabled=True),
         }
         self.lobby_buttons: dict[str, Button] = {
-            "ready_up_button": Button(window, state, 'Ready Up', 225, 450, 300, 150, BLACK.color, WHITE.color),
+            "ready_up_button": Button(window, state, 'Ready Up', READY_UP_BUTTON_COORDS.x, READY_UP_BUTTON_COORDS.y, 300, 150, BLACK.color, WHITE.color),
+            "cycle_game_type": Button(window, state, 'Normal', 225, 450, 300, 150, BLACK.color, WHITE.color, data="cycle_game_type"),
             "debug_toggle": Button(window, state, 'debug', 10, 10, 125, 25, WHITE.color, WHITE.color, enabled=True, sound=None),
         }
         self.buttons: dict[str, Button] = self.color_buttons | self.lobby_buttons
@@ -37,7 +40,7 @@ class PlayerSelectScreen(ScreenStateInterface):
             pos = pygame.mouse.get_pos()
             for btn in self.buttons.values():
                 if btn.click(pos):
-                    self.client_event = btn.text
+                    self.client_event = btn.data
         elif event.type == FAILED_TO_CONNECT_TIMER:
             pygame.time.set_timer(FAILED_TO_CONNECT_TIMER, 0)
             pygame.event.post(pygame.event.Event(CHANGE_STATE, {"state": "menu_screen"}))
@@ -52,11 +55,11 @@ class PlayerSelectScreen(ScreenStateInterface):
                 self.connection_failed = True
                 pygame.time.set_timer(FAILED_TO_CONNECT_TIMER, 1000)
             else:
-                self.state.player_id = list(self.game.players.keys())[-1]
+                self.state.player_id = sorted(list(self.game.players.keys()))[-1]
                 print(f"Player ID {self.state.player_id}")
 
         if self.connection_tried and not self.connection_failed:
-            self.state.game = self.state.network.send(self.client_event)
+            self.state.game.CopyFrom(self.state.network.send(self.client_event))
             self.client_event = "get"
             self.state.server_events.extend(self.game.events)
             for event in self.state.server_events:
@@ -77,6 +80,7 @@ class PlayerSelectScreen(ScreenStateInterface):
                         btn.enable()
             else:
                 [color_button.disable() for color_button in self.color_buttons.values()]
+                self.buttons["cycle_game_type"].enable()
                 if self.player.ready:
                     self.buttons["ready_up_button"].disable()
                 else:
@@ -85,16 +89,15 @@ class PlayerSelectScreen(ScreenStateInterface):
                 if len(self.game.players) == 1:
                     self.buttons["ready_up_button"].text = "Play Single Player"
                     self.buttons["ready_up_button"].width, self.buttons["ready_up_button"].height = 500, 150
-                    self.buttons["ready_up_button"].x, self.buttons["ready_up_button"].y = 125, 450
+                    self.buttons["ready_up_button"].x, self.buttons["ready_up_button"].y = READY_UP_BUTTON_COORDS
                 else:
                     self.buttons["ready_up_button"].text = "Ready Up"
                     self.buttons["ready_up_button"].width, self.buttons["ready_up_button"].height = 300, 150
-                    self.buttons["ready_up_button"].x, self.buttons["ready_up_button"].y = 225, 450
+                    self.buttons["ready_up_button"].x, self.buttons["ready_up_button"].y = READY_UP_BUTTON_COORDS
 
             if self.game.started:
                 pygame.event.post(pygame.event.Event(CHANGE_STATE, {"state": "active_game"}))
 
-    
     def draw(self):
         draw_bg(self.window, self.state)
         if not self.connection_tried and not self.connection_failed:

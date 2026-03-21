@@ -37,6 +37,7 @@ message Game {
   uint64 game_id = 1;
   bool debug = 2;
   bool started = 3;
+  string game_type = 50;
 
   map<uint64, Player> players = 4;
   uint64 player_to_move_id = 5;
@@ -48,8 +49,6 @@ message Game {
   repeated string events = 9;
 
   uint64 nukes_used = 10;
-  uint32 nukes_to_generate_min = 11;
-  uint32 nukes_to_generate_max = 12;
 
   repeated ColorEnum taken_colors = 13;
   bool players_are_ready = 14;
@@ -61,5 +60,4 @@ message Game {
   uint32 deg_nuke_text = 19;
   uint32 deg_snakes_and_ladders = 20;
   uint32 deg_piece_shake = 21;
-  uint32 deg_music = 22;
 }

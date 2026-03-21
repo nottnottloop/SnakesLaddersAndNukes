@@ -63,7 +63,7 @@ class Nuke(_message.Message):
     def __init__(self, position: _Optional[_Union[Position, _Mapping]] = ...) -> None: ...
 
 class Game(_message.Message):
-    __slots__ = ("game_id", "debug", "started", "players", "player_to_move_id", "winner_id", "dice_pips", "movables", "nukes", "events", "nukes_used", "nukes_to_generate_min", "nukes_to_generate_max", "taken_colors", "players_are_ready", "deg_board", "deg_color", "deg_pieces", "deg_dice", "deg_nuke_text", "deg_snakes_and_ladders", "deg_piece_shake", "deg_music")
+    __slots__ = ("game_id", "debug", "started", "game_type", "players", "player_to_move_id", "winner_id", "dice_pips", "movables", "nukes", "events", "nukes_used", "taken_colors", "players_are_ready", "deg_board", "deg_color", "deg_pieces", "deg_dice", "deg_nuke_text", "deg_snakes_and_ladders", "deg_piece_shake")
     class PlayersEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -74,6 +74,7 @@ class Game(_message.Message):
     GAME_ID_FIELD_NUMBER: _ClassVar[int]
     DEBUG_FIELD_NUMBER: _ClassVar[int]
     STARTED_FIELD_NUMBER: _ClassVar[int]
+    GAME_TYPE_FIELD_NUMBER: _ClassVar[int]
     PLAYERS_FIELD_NUMBER: _ClassVar[int]
     PLAYER_TO_MOVE_ID_FIELD_NUMBER: _ClassVar[int]
     WINNER_ID_FIELD_NUMBER: _ClassVar[int]
@@ -82,8 +83,6 @@ class Game(_message.Message):
     NUKES_FIELD_NUMBER: _ClassVar[int]
     EVENTS_FIELD_NUMBER: _ClassVar[int]
     NUKES_USED_FIELD_NUMBER: _ClassVar[int]
-    NUKES_TO_GENERATE_MIN_FIELD_NUMBER: _ClassVar[int]
-    NUKES_TO_GENERATE_MAX_FIELD_NUMBER: _ClassVar[int]
     TAKEN_COLORS_FIELD_NUMBER: _ClassVar[int]
     PLAYERS_ARE_READY_FIELD_NUMBER: _ClassVar[int]
     DEG_BOARD_FIELD_NUMBER: _ClassVar[int]
@@ -93,10 +92,10 @@ class Game(_message.Message):
     DEG_NUKE_TEXT_FIELD_NUMBER: _ClassVar[int]
     DEG_SNAKES_AND_LADDERS_FIELD_NUMBER: _ClassVar[int]
     DEG_PIECE_SHAKE_FIELD_NUMBER: _ClassVar[int]
-    DEG_MUSIC_FIELD_NUMBER: _ClassVar[int]
     game_id: int
     debug: bool
     started: bool
+    game_type: str
     players: _containers.MessageMap[int, Player]
     player_to_move_id: int
     winner_id: int
@@ -105,8 +104,6 @@ class Game(_message.Message):
     nukes: _containers.RepeatedCompositeFieldContainer[Nuke]
     events: _containers.RepeatedScalarFieldContainer[str]
     nukes_used: int
-    nukes_to_generate_min: int
-    nukes_to_generate_max: int
     taken_colors: _containers.RepeatedScalarFieldContainer[ColorEnum]
     players_are_ready: bool
     deg_board: int
@@ -116,5 +113,4 @@ class Game(_message.Message):
     deg_nuke_text: int
     deg_snakes_and_ladders: int
     deg_piece_shake: int
-    deg_music: int
-    def __init__(self, game_id: _Optional[int] = ..., debug: _Optional[bool] = ..., started: _Optional[bool] = ..., players: _Optional[_Mapping[int, Player]] = ..., player_to_move_id: _Optional[int] = ..., winner_id: _Optional[int] = ..., dice_pips: _Optional[int] = ..., movables: _Optional[_Iterable[_Union[Movable, _Mapping]]] = ..., nukes: _Optional[_Iterable[_Union[Nuke, _Mapping]]] = ..., events: _Optional[_Iterable[str]] = ..., nukes_used: _Optional[int] = ..., nukes_to_generate_min: _Optional[int] = ..., nukes_to_generate_max: _Optional[int] = ..., taken_colors: _Optional[_Iterable[_Union[ColorEnum, str]]] = ..., players_are_ready: _Optional[bool] = ..., deg_board: _Optional[int] = ..., deg_color: _Optional[int] = ..., deg_pieces: _Optional[int] = ..., deg_dice: _Optional[int] = ..., deg_nuke_text: _Optional[int] = ..., deg_snakes_and_ladders: _Optional[int] = ..., deg_piece_shake: _Optional[int] = ..., deg_music: _Optional[int] = ...) -> None: ...
+    def __init__(self, game_id: _Optional[int] = ..., debug: _Optional[bool] = ..., started: _Optional[bool] = ..., game_type: _Optional[str] = ..., players: _Optional[_Mapping[int, Player]] = ..., player_to_move_id: _Optional[int] = ..., winner_id: _Optional[int] = ..., dice_pips: _Optional[int] = ..., movables: _Optional[_Iterable[_Union[Movable, _Mapping]]] = ..., nukes: _Optional[_Iterable[_Union[Nuke, _Mapping]]] = ..., events: _Optional[_Iterable[str]] = ..., nukes_used: _Optional[int] = ..., taken_colors: _Optional[_Iterable[_Union[ColorEnum, str]]] = ..., players_are_ready: _Optional[bool] = ..., deg_board: _Optional[int] = ..., deg_color: _Optional[int] = ..., deg_pieces: _Optional[int] = ..., deg_dice: _Optional[int] = ..., deg_nuke_text: _Optional[int] = ..., deg_snakes_and_ladders: _Optional[int] = ..., deg_piece_shake: _Optional[int] = ...) -> None: ...

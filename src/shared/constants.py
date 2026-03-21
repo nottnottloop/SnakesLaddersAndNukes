@@ -57,15 +57,23 @@ class DEG_MAX(Enum):
     DEG_SNAKES_AND_LADDERS = 1
     DEG_PIECE_SHAKE = 1
 
-class Cycle:
+class PlayerCycler:
     def __init__(self, items):
-        self.items = list(items)
+        self.players = list(items)
         self.index = 0
 
     def __iter__(self):
         return self
 
     def __next__(self):
-        value = self.items[self.index % len(self.items)]
+        value = self.players[self.index % len(self.players)]
         self.index += 1
         return value
+
+    def set_index_to_player_id(self, target_id):
+        self.index = [p.player_id for p in self.players].index(target_id)
+
+    @property
+    def current(self):
+        return self.players[self.index % len(self.players)] if self.players else None
+    

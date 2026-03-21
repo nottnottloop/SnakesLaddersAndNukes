@@ -4,7 +4,7 @@ from .utils import ClientState
 from .load_assets import *
 
 class Button:
-    def __init__(self, window, state: ClientState, text, x, y, width, height, color=WHITE.color, text_color=BLACK.color, enabled=False, border_radius=-1, border_width=0, border_color=BLACK.color, sound=sound_click, image=None, callback=lambda *args, **kwargs: None):
+    def __init__(self, window, state: ClientState, text, x, y, width, height, color=WHITE.color, text_color=BLACK.color, enabled=False, border_radius=-1, border_width=0, border_color=BLACK.color, sound=sound_click, image=None, data=None, callback=lambda *args, **kwargs: None):
         self.window = window
         self.state = state
         self.text = text
@@ -20,7 +20,11 @@ class Button:
         self.border_color = border_color
         self.sound = sound
         self.image = image
+        self.data = data
         self.callback = callback
+
+        if not self.data:
+            self.data = self.text
 
     def draw(self):
         if not self.enabled:

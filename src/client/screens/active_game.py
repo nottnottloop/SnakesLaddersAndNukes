@@ -28,7 +28,7 @@ class ActiveGameScreen(ScreenStateInterface):
 
     @property
     def player(self):
-        return self.game.players[self.state.player_id]
+        return self.game.players.get(self.state.player_id)
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONUP:
@@ -36,7 +36,7 @@ class ActiveGameScreen(ScreenStateInterface):
             if not self.winner:
                 for btn in self.buttons.values():
                     if btn.click(pos):
-                        self.client_event = btn.text
+                        self.client_event = btn.data
         elif event.type == pygame.KEYDOWN:
             if not self.winner:
                 if event.scancode == pygame.KSCAN_R:
@@ -65,14 +65,15 @@ class ActiveGameScreen(ScreenStateInterface):
 
     def update(self, dt):
         try:
-            self.state.game = self.state.network.send(self.client_event)
+            self.state.game.CopyFrom(self.state.network.send(self.client_event))
             self.client_event = "get"
         except Exception:
             print("Couldn't get game, booting back to menu screen")
+            pygame.mixer.music.stop()
             pygame.event.post(pygame.event.Event(CHANGE_STATE, {"state": "menu_screen"}))
         
         self.state.server_events.extend(self.game.events)
-        self.player_to_move = self.game.players[self.game.player_to_move_id]
+        self.player_to_move = self.game.players.get(self.game.player_to_move_id)
         self.winner = self.game.players.get(self.game.winner_id)
 
         # Debug

@@ -11,6 +11,7 @@ def game_to_proto(game_obj) -> game_pb2.Game:
     proto_game.game_id = game_obj.game_id
     proto_game.debug = game_obj.debug
     proto_game.started = game_obj.started
+    proto_game.game_type = game_obj.game_type
 
     # --- Players ---
     for i, player_obj in game_obj.players.items():
@@ -33,8 +34,6 @@ def game_to_proto(game_obj) -> game_pb2.Game:
     proto_game.dice_pips = game_obj.dice_pips
 
     proto_game.nukes_used = game_obj.nukes_used
-    proto_game.nukes_to_generate_min = game_obj.nukes_to_generate[0]
-    proto_game.nukes_to_generate_max = game_obj.nukes_to_generate[1]
 
     # --- Events ---
     proto_game.events.extend(game_obj.events)
@@ -62,7 +61,6 @@ def game_to_proto(game_obj) -> game_pb2.Game:
     proto_game.deg_nuke_text = game_obj.deg_nuke_text
     proto_game.deg_snakes_and_ladders = game_obj.deg_snakes_and_ladders
     proto_game.deg_piece_shake = game_obj.deg_piece_shake
-    proto_game.deg_music = game_obj.deg_music
 
     # --- Computed fields ---
     proto_game.taken_colors.extend(game_obj.taken_colors)

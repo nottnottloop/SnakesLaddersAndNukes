@@ -15,6 +15,9 @@ class Player:
     def board_number(self):
         return POSITION_TO_BOARD_NUMBER[self.position]
     
+    def __repr__(self):
+        return str(f"Player ID: {self.player_id}")
+    
 class Movable:
     def __init__(self, position, vector, sprite, type):
         self.position: Position = position
@@ -31,20 +34,19 @@ class Game:
         self.game_id: int = game_id
         self.debug = False
         self.started = False
+        self.game_type = "Normal"
         
         self.players: dict[int, Player] = {}
         self.player_to_move: Player = None
-        self.player_cycle: Cycle = None
+        self.player_cycle: PlayerCycler = None
         self.winner: Player = None
         self.dice_pips = random.randint(1, 6)
 
         self.nukes_used = 0
-        self.nukes_to_generate = (5, 15)
 
         self.events: list[str] = []
         self.movables: list[Movable] = []
         self.nukes: list[Position] = []
-        self.generate_objects()
 
         self.deg_board = 0
         self.deg_color = 0
@@ -53,7 +55,6 @@ class Game:
         self.deg_nuke_text = 0
         self.deg_snakes_and_ladders = 0
         self.deg_piece_shake = 0
-        self.deg_music = 0
 
     @property
     def taken_colors(self) -> set[str]:
@@ -66,16 +67,25 @@ class Game:
     # Connection and lobby screen
     def add_new_player(self, player_id):
         self.players[player_id] = Player(player_id)
-        self.player_cycle = Cycle(self.players.values())
+        self.player_cycle = PlayerCycler(self.players.values())
         self.player_to_move = next(self.player_cycle)
 
     def player_lost_connection(self, player: Player):
-        if len(self.players) > 1:
-            self.player_to_move = next(self.player_cycle)
-            del self.players[player.player_id]
-            self.player_cycle = Cycle(self.players.values())
+        current_id = self.player_to_move.player_id
+        leaver_id = player.player_id
+        del self.players[leaver_id]
+        if not self.players:
+            self.player_to_move = None
+            return
+        
+        if current_id == leaver_id:
+            player_after_leaver_id = next(self.player_cycle).player_id
+            self.player_cycle = PlayerCycler(self.players.values())
+            self.player_cycle.set_index_to_player_id(player_after_leaver_id)
         else:
-            del self.players[player.player_id]
+            self.player_cycle = PlayerCycler(self.players.values())
+            self.player_cycle.set_index_to_player_id(current_id)
+        self.player_to_move = next(self.player_cycle)
 
     def set_player_color(self, player: Player, color: str):
         player.color = TEXT_TO_ENUM_COLOR_MAP[color]
@@ -85,6 +95,7 @@ class Game:
         if self.players_are_ready:
             self.started = True
             self.events.append("papers_please")
+            self.generate_objects()
             if self.debug:
                 for player in self.players.values():
                     player.nukes = 2**31 - 1
@@ -131,7 +142,14 @@ class Game:
                     self.movables.append(movable)
                     break
 
-        for _ in range(random.randint(self.nukes_to_generate[0], self.nukes_to_generate[1])):
+        if self.game_type == "Normal":
+            nukes_to_generate = (5, 15)
+        elif self.game_type == "Peaceful":
+            nukes_to_generate = (0, 0)
+        elif self.game_type == "WW3":
+            nukes_to_generate = (98, 98)
+
+        for _ in range(random.randint(nukes_to_generate[0], nukes_to_generate[1])):
             while True:
                 possible_position = Position(random.randint(0, 9), random.randint(0, 9))
                 if possible_position == (0, 0) or possible_position == (0, 9) or possible_position in self.nukes:
