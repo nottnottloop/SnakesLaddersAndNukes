@@ -10,6 +10,8 @@ The game progressively gets more dystopic and scary as more nukes are used, beca
 1. Change `host` to the correct IP address
 1. Run the client: `python3 -m src.client.client` or `py -m src.client.client` on Windows
 
+You can alternatively use R to roll and N to nuke. You can use Shift+Q to exit a game.
+
 ### Hosting the server
 If for any ~~god-forsaken~~ reason you want to run the server, run `python3 -m src.server.server` after copying and modifying `serverconfig.ini` in the root directory.
 

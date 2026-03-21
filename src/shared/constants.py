@@ -45,3 +45,16 @@ class DEG_MAX(Enum):
     DEG_NUKE_TEXT = 1
     DEG_SNAKES_AND_LADDERS = 1
     DEG_PIECE_SHAKE = 1
+
+class Cycle:
+    def __init__(self, items):
+        self.items = list(items)
+        self.index = 0
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        value = self.items[self.index % len(self.items)]
+        self.index += 1
+        return value

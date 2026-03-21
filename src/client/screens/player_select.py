@@ -20,7 +20,7 @@ class PlayerSelectScreen(ScreenStateInterface):
         }
         self.lobby_buttons: dict[str, Button] = {
             "ready_up_button": Button(window, state, 'Ready Up', 225, 450, 300, 150, BLACK.color, WHITE.color),
-            "debug_enable": Button(window, state, 'debug', 10, 10, 125, 25, WHITE.color, WHITE.color, enabled=True, sound=None),
+            "debug_toggle": Button(window, state, 'debug', 10, 10, 125, 25, WHITE.color, WHITE.color, enabled=True, sound=None),
         }
         self.buttons: dict[str, Button] = self.color_buttons | self.lobby_buttons
     
@@ -57,6 +57,15 @@ class PlayerSelectScreen(ScreenStateInterface):
 
         if self.connection_tried and not self.connection_failed:
             self.state.game = self.state.network.send("get")
+            for event in self.game.events:
+                if event == "debug":
+                    if self.game.debug:
+                        self.state.play_sound(assets.sound_debug_enable)
+                        self.lobby_buttons["debug_toggle"].text_color = RED.color
+                    else:
+                        self.state.play_sound(assets.sound_debug_disable)
+                        self.lobby_buttons["debug_toggle"].text_color = WHITE.color
+        
             if not self.player.color:
                 for btn in self.color_buttons.values():
                     if btn.text in self.game.taken_colors:
@@ -69,15 +78,19 @@ class PlayerSelectScreen(ScreenStateInterface):
                     self.buttons["ready_up_button"].disable()
                 else:
                     self.buttons["ready_up_button"].enable()
+
+                if len(self.game.players) == 1:
+                    self.buttons["ready_up_button"].text = "Play Single Player"
+                    self.buttons["ready_up_button"].width, self.buttons["ready_up_button"].height = 500, 150
+                    self.buttons["ready_up_button"].x, self.buttons["ready_up_button"].y = 125, 450
+                else:
+                    self.buttons["ready_up_button"].text = "Ready Up"
+                    self.buttons["ready_up_button"].width, self.buttons["ready_up_button"].height = 300, 150
+                    self.buttons["ready_up_button"].x, self.buttons["ready_up_button"].y = 225, 450
+
             if self.game.started:
                 pygame.event.post(pygame.event.Event(CHANGE_STATE, {"state": "active_game"}))
 
-        for event in self.game.events:
-            if event == "debug":
-                if self.game.debug:
-                    self.state.play_sound(assets.sound_debug_enable)
-                else:
-                    self.state.play_sound(assets.sound_debug_disable)
     
     def draw(self):
         draw_bg(self.window, self.state)
@@ -94,7 +107,7 @@ class PlayerSelectScreen(ScreenStateInterface):
             self.window.blit(text, (10, 10))
             if not self.player.color:
                 text = FONTS[50].render("Choose your colour!", True, BLACK.color)
-                blit_centered_text(self.window, text, -300)
+                blit_centered_text(self.window, text, -270)
             else:
                 text = FONTS[25].render(self.player.color.text, True, self.player.color.color)
                 self.window.blit(text, (10, 40))

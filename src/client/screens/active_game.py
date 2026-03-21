@@ -166,10 +166,10 @@ class ActiveGameScreen(ScreenStateInterface):
         if self.player.nukes > 0:
             if not self.game.deg_nuke_text:
                 text = FONTS[120].render(str(self.player.nukes), True, RED.color)
-                self.window.blit(text, (80, 610))
+                self.window.blit(text, (80, 615))
             else:
                 text = DEG_NUKE_FONT.render(str(self.player.nukes), True, RED.color)
-                self.window.blit(text, (80, 610))
+                self.window.blit(text, (80, 615))
 
         # Winner text
         if self.game.winner:

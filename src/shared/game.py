@@ -1,5 +1,4 @@
 import random
-from itertools import cycle
 
 from ..shared.constants import *
 
@@ -35,7 +34,7 @@ class Game:
         
         self.players: dict[int, Player] = {}
         self.player_to_move: Player = None
-        self.player_cycle: cycle = None
+        self.player_cycle: Cycle = None
         self.winner: Player = None
         self.dice_pips = random.randint(1, 6)
 
@@ -64,9 +63,17 @@ class Game:
     def players_are_ready(self) -> set[str]:
         return all(player.ready for player in self.players.values())
 
-    # Lobby screen
+    # Connection and lobby screen
     def add_new_player(self, player_id):
         self.players[player_id] = Player(player_id)
+        self.player_cycle = Cycle(self.players.values())
+        self.player_to_move = next(self.player_cycle)
+
+    def player_lost_connection(self, player: Player):
+        if len(self.players) > 1:
+            self.player_to_move = next(self.player_cycle)
+            del self.players[player.player_id]
+            self.player_cycle = Cycle(self.players.values())
 
     def set_player_color(self, player: Player, color: str):
         player.color = COLOR_MAP[color]
@@ -74,16 +81,11 @@ class Game:
     def set_player_ready(self, player: Player):
         player.ready = True
         if self.players_are_ready:
-            self.player_cycle = cycle(self.players.values())
-            self.player_to_move = next(self.player_cycle)
             self.started = True
             if self.debug:
                 for player in self.players.values():
-                    player.nukes = 100
+                    player.nukes = 9999999999999999
                     player.position = Position(5, 5)
-
-    def player_lost_connection(self, player: Player):
-        del self.players[player.player_id]
 
     # Gameplay
     def calculate_destination_position(self, start_pos: Position, vector: Position) -> Position:

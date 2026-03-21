@@ -33,6 +33,10 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_q and event.mod & (pygame.KMOD_LSHIFT | pygame.KMOD_RSHIFT):
+                pygame.mixer.music.stop()
+                pygame.event.post(pygame.event.Event(CHANGE_STATE, {"state": "menu_screen"}))
         elif event.type == CHANGE_STATE:
             if event.state == "menu_screen":
                 state = ClientState()

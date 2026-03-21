@@ -11,13 +11,14 @@ config.read('serverconfig.ini')
 host = config['Server']['host']
 port = int(config['Server']['port'])
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_socket = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+server_socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
 
 try:
-    s.bind((host, port))
+    server_socket.bind((host, port))
 except socket.error as e:
     str(e)
-s.listen()
+server_socket.listen()
 
 print(f"Hosting server on {host} on {port}")
 print("Waiting for a connection, Server Started")
@@ -49,7 +50,7 @@ def threaded_client(conn, addr, player_id, game_id):
                 if not game.winner:
                     if data in (COLOR_MAP.keys()):
                         game.set_player_color(player, data)
-                    elif data == "Ready Up":
+                    elif data in ["Ready Up", "Play Single Player"]:
                         game.set_player_ready(player)
                     elif data == "roll":
                         game.roll_dice(player)
@@ -71,12 +72,12 @@ def threaded_client(conn, addr, player_id, game_id):
     game.player_lost_connection(player)
     print(f"Lost connection to {addr[0]}, player {player.player_id} in game {game_id}")
     if len(games[game_id].players) == 0:
-        print("Closing game", game_id)
+        print(f"Closing game ID {game_id}")
         del games[game_id]
 
 while True:
-    conn, addr = s.accept()
-    print("Connected to:", addr)
+    conn, addr = server_socket.accept()
+    print(f"Connected to:", addr[0])
 
     game_found = False
 
