@@ -78,20 +78,17 @@ def threaded_client(conn, addr, player_id, game_id):
 while True:
     conn, addr = server_socket.accept()
     print(f"Connected to:", addr[0])
-
+    player_id_count += 1
     game_found = False
-
-    if games:
-        for game_id, game in games.items():
-            if game.started:
-                continue
-            if len(game.players) < 4:
-                start_new_threaded_client(player_id_count, game_id)
-                game_found = True
+    for game_id, game in games.items():
+        if game.started:
+            continue
+        if len(game.players) < 4:
+            start_new_threaded_client(player_id_count, game_id)
+            game_found = True
 
     if not game_found:
         games[game_id_count] = Game(game_id_count)
         print("Creating game ID", game_id_count)
         start_new_threaded_client(player_id_count, game_id_count)
         game_id_count += 1
-    player_id_count += 1

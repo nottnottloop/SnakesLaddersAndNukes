@@ -5,7 +5,7 @@ from .utils import *
 from .constants import *
 from src.shared.constants import *
 
-from .screens.main_menu import MenuScreen
+from .screens.menu_screen import MenuScreen
 from .screens.player_select import PlayerSelectScreen
 from .screens.active_game import ActiveGameScreen
 
@@ -39,6 +39,7 @@ while running:
                 pygame.event.post(pygame.event.Event(CHANGE_STATE, {"state": "menu_screen"}))
         elif event.type == CHANGE_STATE:
             if event.state == "menu_screen":
+                state.network.disconnect()
                 state = ClientState()
             screen_states[event.state].__init__(window, state)
             state.screen_state = screen_states[event.state]

@@ -74,6 +74,8 @@ class Game:
             self.player_to_move = next(self.player_cycle)
             del self.players[player.player_id]
             self.player_cycle = Cycle(self.players.values())
+        else:
+            del self.players[player.player_id]
 
     def set_player_color(self, player: Player, color: str):
         player.color = COLOR_MAP[color]

@@ -17,7 +17,7 @@ class Network:
             raise e
 
     def disconnect(self):
-        self.client_socket.close(self.addr)
+        self.client_socket.close()
 
     def send(self, data):
         try:
