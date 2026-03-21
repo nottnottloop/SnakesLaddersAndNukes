@@ -1,8 +1,8 @@
 import socket
 from threading import Thread
-import pickle
 import configparser
 
+from .game_serializer import *
 from ..shared.game import Game, Player
 from ..shared.constants import *
 config = configparser.ConfigParser()
@@ -34,9 +34,9 @@ def start_new_threaded_client(player_id, game_id):
     new_thread.start()
 
 def threaded_client(conn, addr, player_id, game_id):
-    # initial pickle for handshake
+    # initial handshake
     game = games[game_id]
-    conn.sendall(pickle.dumps(game))
+    conn.sendall(serialize_game(game))
     player: Player = game.players[player_id]
     while True:
         try:
@@ -48,7 +48,7 @@ def threaded_client(conn, addr, player_id, game_id):
                 game = games[game_id]
                 game.events = []
                 if not game.winner:
-                    if data in (COLOR_MAP.keys()):
+                    if data in (TEXT_TO_ENUM_COLOR_MAP.keys()):
                         game.set_player_color(player, data)
                     elif data in ["Ready Up", "Play Single Player"]:
                         game.set_player_ready(player)
@@ -64,7 +64,7 @@ def threaded_client(conn, addr, player_id, game_id):
                             game.debug_move(player, data)
                         elif data == "generate_objects":
                             game.generate_objects()
-                conn.sendall(pickle.dumps(game))
+                conn.sendall(serialize_game(game))
             else:
                 break
         except:

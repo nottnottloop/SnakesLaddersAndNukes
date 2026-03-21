@@ -1,6 +1,7 @@
 import socket
-import pickle
 import configparser
+from ..shared import game_pb2
+
 config = configparser.ConfigParser()
 
 class Network:
@@ -22,7 +23,10 @@ class Network:
     def send(self, data):
         try:
             self.client_socket.send(str.encode(data))
-            return pickle.loads(self.client_socket.recv(4096))
+            received = self.client_socket.recv(4096)
+            game = game_pb2.Game()
+            game.ParseFromString(received)
+            return game
         except Exception as e:
             print("Could not connect")
             print(e)

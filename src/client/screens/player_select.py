@@ -4,7 +4,6 @@ from ..constants import *
 from .. import load_assets as assets
 from ..button import Button
 from ..utils import *
-from src.shared.game import Game, Player
 
 class PlayerSelectScreen(ScreenStateInterface):
     def __init__(self, window: pygame.surface.Surface, state: ClientState):
@@ -25,12 +24,12 @@ class PlayerSelectScreen(ScreenStateInterface):
         self.buttons: dict[str, Button] = self.color_buttons | self.lobby_buttons
     
     @property
-    def game(self) -> Game:
+    def game(self) -> game_pb2:
         return self.state.game
 
     @property
-    def player(self) -> Player:
-        return self.state.player
+    def player(self):
+        return self.game.players.get(self.state.player_id)
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONUP:
@@ -52,7 +51,7 @@ class PlayerSelectScreen(ScreenStateInterface):
                 self.connection_failed = True
                 pygame.time.set_timer(FAILED_TO_CONNECT_TIMER, 1000)
             else:
-                self.state.player_id = next(reversed(self.game.players.values())).player_id
+                self.state.player_id = list(self.game.players.keys())[-1]
                 print(f"Player ID {self.state.player_id}")
 
         if self.connection_tried and not self.connection_failed:
@@ -68,7 +67,7 @@ class PlayerSelectScreen(ScreenStateInterface):
         
             if not self.player.color:
                 for btn in self.color_buttons.values():
-                    if btn.text in self.game.taken_colors:
+                    if TEXT_TO_ENUM_COLOR_MAP[btn.text] in self.game.taken_colors:
                         btn.disable()
                     else:
                         btn.enable()
@@ -109,9 +108,9 @@ class PlayerSelectScreen(ScreenStateInterface):
                 text = FONTS[50].render("Choose your colour!", True, BLACK.color)
                 blit_centered_text(self.window, text, -270)
             else:
-                text = FONTS[25].render(self.player.color.text, True, self.player.color.color)
+                text = FONTS[25].render(ENUM_TO_COLOR_OBJECT_MAP[self.player.color].text, True, ENUM_TO_COLOR_OBJECT_MAP[self.player.color].color)
                 self.window.blit(text, (10, 40))
                 text = FONTS[40].render(f"Players in Lobby: {str(len(self.game.players))}/4", True, BLACK.color)
                 blit_centered_text(self.window, text, -220)
-                text = FONTS[50].render("Waiting for Players...", True, self.player.color.color)
+                text = FONTS[50].render("Waiting for Players...", True, ENUM_TO_COLOR_OBJECT_MAP[self.player.color].color)
                 blit_centered_text(self.window, text, -50)

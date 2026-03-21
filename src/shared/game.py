@@ -1,13 +1,13 @@
 import random
 
 from ..shared.constants import *
-
+from .game_pb2 import ColorEnum
 
 class Player:
     def __init__(self, player_id):
         self.player_id = player_id
         self.position: Position = Position(0, 0)
-        self.color: Color | None = None
+        self.color: ColorEnum | None = None
         self.nukes = 0
         self.ready = False
     
@@ -28,8 +28,8 @@ class Nuke:
 
 class Game:
     def __init__(self, game_id):
-        self.debug = False
         self.game_id: int = game_id
+        self.debug = False
         self.started = False
         
         self.players: dict[int, Player] = {}
@@ -57,7 +57,7 @@ class Game:
 
     @property
     def taken_colors(self) -> set[str]:
-        return {player.color.text for player in self.players.values() if player.color is not None}
+        return [player.color for player in self.players.values() if player.color is not None]
 
     @property
     def players_are_ready(self) -> set[str]:
@@ -78,7 +78,7 @@ class Game:
             del self.players[player.player_id]
 
     def set_player_color(self, player: Player, color: str):
-        player.color = COLOR_MAP[color]
+        player.color = TEXT_TO_ENUM_COLOR_MAP[color]
 
     def set_player_ready(self, player: Player):
         player.ready = True

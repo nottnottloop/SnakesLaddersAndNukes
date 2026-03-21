@@ -6,6 +6,7 @@ A server-client game of Snakes and Ladders with the distinction that there are a
 The game progressively gets more dystopic and scary as more nukes are used, because in nuclear war, there are no winners ヾ(≧▽≦*)o
 
 ### Playing the game
+1. Run `pip install -r requirements.txt`
 1. Copy `serverconfigs/gameconfig.ini` to the root directory
 1. Change `host` to the correct IP address
 1. Run the client: `python3 -m src.client.client` or `py -m src.client.client` on Windows

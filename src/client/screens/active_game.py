@@ -6,7 +6,7 @@ from ..explosion import Explosion
 from ..utils import *
 from ..constants import *
 from ..networking import Network
-from ...shared.game import Game
+from ...shared import game_pb2
 
 class ActiveGameScreen(ScreenStateInterface):
     def __init__(self, window: pygame.surface.Surface, state: ClientState):
@@ -20,11 +20,11 @@ class ActiveGameScreen(ScreenStateInterface):
         self.started_music = False
 
     @property
-    def game(self) -> Game:
+    def game(self) -> game_pb2:
         return self.state.game
 
     @property
-    def player(self) -> Player:
+    def player(self):
         return self.state.player
 
     def handle_event(self, event):

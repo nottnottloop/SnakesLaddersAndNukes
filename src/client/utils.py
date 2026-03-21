@@ -1,7 +1,7 @@
 import pygame
 from abc import ABC, abstractmethod
 
-from ..shared.game import Game, Player
+from ..shared import game_pb2
 from .constants import *
 from src.shared.constants import *
 from .networking import Network
@@ -24,11 +24,11 @@ class ScreenStateInterface(ABC):
 
 class ClientState():
     def __init__(self):
-        self.game: Game = None
+        self.game: game_pb2 = None
         self.screen_state: ScreenStateInterface
         self.clock = pygame.time.Clock()
         self.network = Network()
-        self.player_id = None
+        self.player_id: int = None
 
         self.sound_enabled = True
 
@@ -44,10 +44,6 @@ class ClientState():
             pygame.mixer.music.load(music)
             pygame.mixer.music.set_volume(0.1)
             pygame.mixer.music.play(-1)
-
-    @property
-    def player(self) -> Player:
-        return self.game.players.get(self.player_id)
 
 def blit_centered_text(window, text, y_offset=0):
     window.blit(text, (WIDTH / 2 - text.get_width() / 2, HEIGHT / 2 - text.get_height() / 2 + y_offset))

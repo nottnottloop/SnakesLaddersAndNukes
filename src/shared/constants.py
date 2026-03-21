@@ -1,6 +1,7 @@
 from enum import Enum
 from collections import namedtuple
-from dataclasses import dataclass
+
+from .game_pb2 import ColorEnum
 
 Color = namedtuple("Color", ["text", "color"])
 Position = namedtuple("Position", ["x", "y"])
@@ -12,11 +13,20 @@ BLUE = Color("Blue", (0, 0, 255))
 GREEN = Color("Green", (0, 255, 0))
 YELLOW = Color("Yellow", (252, 226, 5))
 
-COLOR_MAP = {
-    "Red": RED,
-    "Blue": BLUE,
-    "Green": GREEN,
-    "Yellow": YELLOW,
+TEXT_TO_ENUM_COLOR_MAP = {
+    "Red": ColorEnum.RED,
+    "Blue": ColorEnum.BLUE,
+    "Green": ColorEnum.GREEN,
+    "Yellow": ColorEnum.YELLOW,
+}
+
+ENUM_TO_COLOR_OBJECT_MAP = {
+    ColorEnum.BLACK: BLACK,
+    ColorEnum.WHITE: WHITE,
+    ColorEnum.RED: RED,
+    ColorEnum.BLUE: BLUE,
+    ColorEnum.GREEN: GREEN,
+    ColorEnum.YELLOW: YELLOW,
 }
 
 def generate_board_number_to_position():

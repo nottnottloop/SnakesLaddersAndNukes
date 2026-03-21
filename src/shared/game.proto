@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+message Position {
+  int32 x = 1;
+  int32 y = 2;
+}
+
+enum ColorEnum {
+    BLACK = 0;
+    WHITE = 1;
+    RED = 2;
+    BLUE = 3;
+    GREEN = 4;
+    YELLOW = 5;
+}
+
+// Player message
+message Player {
+  int32 player_id = 1;
+  Position position = 2;
+  ColorEnum color = 3;
+  int32 nukes = 4;
+  bool ready = 5;
+
+  // Computed property: server must fill
+  int32 board_number = 6;    // computed from position
+}
+
+// Movable object (pieces, dice, etc.)
+message Movable {
+  Position position = 1;
+  Position vector = 2;
+  string sprite = 3;
+  string type = 4;
+}
+
+// Nuke object
+message Nuke {
+  Position position = 1;
+}
+
+// Game state
+message Game {
+  int32 game_id = 1;
+  bool debug = 2;
+  bool started = 3;
+
+    map<int32, Player> players = 4;
+  int32 player_to_move_id = 5;
+  int32 winner_id = 23;
+  int32 dice_pips = 6;
+
+  repeated Movable movables = 7;
+  repeated Nuke nukes = 8;
+  repeated string events = 9;
+
+  int32 nukes_used = 10;
+  int32 nukes_to_generate_min = 11;
+  int32 nukes_to_generate_max = 12;
+
+  // Optional computed properties populated server-side
+  repeated ColorEnum taken_colors = 13;
+  bool players_are_ready = 14;
+
+  // Decorations / debug degrees
+  int32 deg_board = 15;
+  int32 deg_color = 16;
+  int32 deg_pieces = 17;
+  int32 deg_dice = 18;
+  int32 deg_nuke_text = 19;
+  int32 deg_snakes_and_ladders = 20;
+  int32 deg_piece_shake = 21;
+  int32 deg_music = 22;
+}
