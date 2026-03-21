@@ -37,6 +37,8 @@ while running:
             if event.key == pygame.K_q and event.mod & (pygame.KMOD_LSHIFT | pygame.KMOD_RSHIFT):
                 pygame.mixer.music.stop()
                 pygame.event.post(pygame.event.Event(CHANGE_STATE, {"state": "menu_screen"}))
+            else:
+                state.screen_state.handle_event(event)
         elif event.type == CHANGE_STATE:
             if event.state == "menu_screen":
                 state.network.disconnect()
