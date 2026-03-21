@@ -29,6 +29,7 @@ class ClientState():
         self.clock = pygame.time.Clock()
         self.network = Network()
         self.player_id: int = None
+        self.server_events: list[str] = []
 
         self.sound_enabled = True
 

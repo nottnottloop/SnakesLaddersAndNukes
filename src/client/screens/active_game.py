@@ -18,10 +18,9 @@ class ActiveGameScreen(ScreenStateInterface):
             "nuke_button": Button(window, state, 'NUKE', 295, 615, 130, 130, RED.color, WHITE.color, border_radius=50, border_width=3),
         }
         self.explosion_group = pygame.sprite.Group()
-        self.started_music = False
         self.player_to_move: Player = None
         self.winner: Player = None
-        self.event_queue: list[str] = []
+        self.client_event: str = "get"
 
     @property
     def game(self) -> game_pb2:
@@ -37,51 +36,54 @@ class ActiveGameScreen(ScreenStateInterface):
             if not self.winner:
                 for btn in self.buttons.values():
                     if btn.click(pos):
-                        self.state.network.send(btn.text)
+                        self.client_event = btn.text
         elif event.type == pygame.KEYDOWN:
             if not self.winner:
-                if event.key == pygame.K_r:
-                    self.state.network.send(self.buttons["dice_button"].text)
+                if event.scancode == pygame.KSCAN_R:
+                    self.client_event = self.buttons["dice_button"].text
                     self.buttons["dice_button"].play_button_sound()
-                elif event.key == pygame.K_n:
-                    self.state.network.send(self.buttons["nuke_button"].text)
+                elif event.scancode == pygame.KSCAN_N:
+                    self.client_event = self.buttons["nuke_button"].text
                     if self.player.nukes > 0:
                         self.buttons["nuke_button"].play_button_sound()
             # Debug
-            if event.key == pygame.K_UP:
-                self.state.network.send("Up")
-            elif event.key == pygame.K_DOWN:
-                self.state.network.send("Down")
-            elif event.key == pygame.K_RIGHT:
-                self.state.network.send("Right")
-            elif event.key == pygame.K_LEFT:
-                self.state.network.send("Left")
-            elif event.key == pygame.K_k:
-                self.state.network.send("generate_objects")
+            if event.scancode == pygame.KSCAN_UP or event.scancode == pygame.KSCAN_W:
+                self.client_event = "Up"
+            elif event.scancode == pygame.KSCAN_DOWN or event.scancode == pygame.KSCAN_S:
+                self.client_event = "Down"
+            elif event.scancode == pygame.KSCAN_RIGHT or event.scancode == pygame.KSCAN_D:
+                self.client_event = "Right"
+            elif event.scancode == pygame.KSCAN_LEFT or event.scancode == pygame.KSCAN_A:
+                self.client_event = "Left"
+            elif event.scancode == pygame.KSCAN_K:
+                self.client_event = "generate_objects"
+            elif event.scancode == pygame.KSCAN_J:
+                self.client_event = "reset_deg"
         elif event.type == WINNER:
             pygame.time.set_timer(WINNER, 0)
             pygame.event.post(pygame.event.Event(CHANGE_STATE, {"state": "menu_screen"}))
 
     def update(self, dt):
         try:
-            self.state.game = self.state.network.send("get")
+            self.state.game = self.state.network.send(self.client_event)
+            self.client_event = "get"
         except Exception:
             print("Couldn't get game, booting back to menu screen")
             pygame.event.post(pygame.event.Event(CHANGE_STATE, {"state": "menu_screen"}))
         
-        self.event_queue.extend(self.state.game.events)
+        self.state.server_events.extend(self.game.events)
         self.player_to_move = self.game.players[self.game.player_to_move_id]
         self.winner = self.game.players.get(self.game.winner_id)
 
         # Debug
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_l]:
+        if keys[pygame.key.key_code("l")]:
             self.state.network.send("generate_objects")
         
         self.explosion_group.update()
 
-        while self.event_queue:
-            event = self.event_queue.pop()
+        while self.state.server_events:
+            event = self.state.server_events.pop()
             if event == "winner":
                 pygame.time.set_timer(WINNER, 5000)
                 pygame.mixer.music.stop()
@@ -100,12 +102,12 @@ class ActiveGameScreen(ScreenStateInterface):
             elif event == "nuke_used":
                 self.state.play_sound(assets.sound_explosion)
                 self.explosion_group.add(Explosion())
-            elif event == "music_change":
+            elif event == "papers_please":
+                self.state.play_music(assets.music_papers_please)
+            elif event == "but_nobody_came":
                 self.state.play_music(assets.music_but_nobody_came)
-
-        if not self.started_music:
-            self.state.play_music(assets.music_papers_please)
-            self.started_music = True
+            elif event == "genocide":
+                self.state.play_music(assets.music_genocide)
 
         # Dice
         if self.player_to_move == self.player:

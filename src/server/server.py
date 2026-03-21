@@ -64,6 +64,8 @@ def threaded_client(conn, addr, player_id, game_id):
                             game.debug_move(player, data)
                         elif data == "generate_objects":
                             game.generate_objects()
+                        elif data == "reset_deg":
+                            game.reset_degredation()
                 conn.sendall(serialize_game(game))
             else:
                 break

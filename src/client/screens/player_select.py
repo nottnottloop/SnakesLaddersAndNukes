@@ -22,6 +22,7 @@ class PlayerSelectScreen(ScreenStateInterface):
             "debug_toggle": Button(window, state, 'debug', 10, 10, 125, 25, WHITE.color, WHITE.color, enabled=True, sound=None),
         }
         self.buttons: dict[str, Button] = self.color_buttons | self.lobby_buttons
+        self.client_event: str = "get"
     
     @property
     def game(self) -> game_pb2:
@@ -36,7 +37,7 @@ class PlayerSelectScreen(ScreenStateInterface):
             pos = pygame.mouse.get_pos()
             for btn in self.buttons.values():
                 if btn.click(pos):
-                    self.state.network.send(btn.text)
+                    self.client_event = btn.text
         elif event.type == FAILED_TO_CONNECT_TIMER:
             pygame.time.set_timer(FAILED_TO_CONNECT_TIMER, 0)
             pygame.event.post(pygame.event.Event(CHANGE_STATE, {"state": "menu_screen"}))
@@ -46,7 +47,7 @@ class PlayerSelectScreen(ScreenStateInterface):
             try:
                 self.connection_tried = True
                 self.state.network.connect()
-                self.state.game = self.state.network.send("get")
+                self.state.game = self.state.network.send(self.client_event)
             except Exception:
                 self.connection_failed = True
                 pygame.time.set_timer(FAILED_TO_CONNECT_TIMER, 1000)
@@ -55,9 +56,12 @@ class PlayerSelectScreen(ScreenStateInterface):
                 print(f"Player ID {self.state.player_id}")
 
         if self.connection_tried and not self.connection_failed:
-            self.state.game = self.state.network.send("get")
-            for event in self.game.events:
+            self.state.game = self.state.network.send(self.client_event)
+            self.client_event = "get"
+            self.state.server_events.extend(self.game.events)
+            for event in self.state.server_events:
                 if event == "debug":
+                    self.state.server_events.remove("debug")
                     if self.game.debug:
                         self.state.play_sound(assets.sound_debug_enable)
                         self.lobby_buttons["debug_toggle"].text_color = RED.color

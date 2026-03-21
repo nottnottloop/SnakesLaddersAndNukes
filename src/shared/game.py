@@ -84,6 +84,7 @@ class Game:
         player.ready = True
         if self.players_are_ready:
             self.started = True
+            self.events.append("papers_please")
             if self.debug:
                 for player in self.players.values():
                     player.nukes = 2**31 - 1
@@ -174,7 +175,7 @@ class Game:
             self.nukes_used += 1
             self.events.append("nuke_used")
             if self.nukes_used == 7:
-                self.events.append("music_change")
+                self.events.append("but_nobody_came")
             self.degrade()
             for player in self.players.values():
                 player.position = Position(random.randint(0, 9), random.randint(0, 8))
@@ -235,3 +236,15 @@ class Game:
             player.position = Position(player.position.x - 1, player.position.y)
         if player.position in POSITION_TO_BOARD_NUMBER:
             self.check_player_interaction(player)
+
+    def reset_degredation(self):
+        self.nukes_used = 0
+        self.deg_board = 0
+        self.deg_color = 0
+        self.deg_pieces = 0
+        self.deg_dice = 0
+        self.deg_nuke_text = 0
+        self.deg_snakes_and_ladders = 0
+        self.deg_piece_shake = 0
+        self.deg_music = 0
+        self.events.append("papers_please")
