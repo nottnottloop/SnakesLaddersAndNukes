@@ -29,7 +29,7 @@ class PlayerSelectScreen(ScreenStateInterface):
 
     @property
     def player(self):
-        return self.game.players.get(self.state.player_id)
+        return self.game.players[self.state.player_id]
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONUP:

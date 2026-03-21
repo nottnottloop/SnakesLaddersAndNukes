@@ -7,17 +7,21 @@ from ..utils import *
 from ..constants import *
 from ..networking import Network
 from ...shared import game_pb2
+from ...shared.game_pb2 import Player
 
 class ActiveGameScreen(ScreenStateInterface):
     def __init__(self, window: pygame.surface.Surface, state: ClientState):
         self.window = window
-        self.state = state
+        self.state: ClientState = state
         self.buttons: dict[str, Button] = {
-            "dice_button": Button(window, state, 'roll', 550, 625, 100, 100, BLACK.color, WHITE.color, border_radius=100, sound=assets.sound_dice),
-            "nuke_button": Button(window, state, 'NUKE', 295, 615, 130, 130, RED.color, WHITE.color, border_radius=50),
+            "dice_button": Button(window, state, 'roll', 550, 625, 100, 100, BLACK.color, WHITE.color, border_radius=100, sound=None),
+            "nuke_button": Button(window, state, 'NUKE', 295, 615, 130, 130, RED.color, WHITE.color, border_radius=50, border_width=3),
         }
         self.explosion_group = pygame.sprite.Group()
         self.started_music = False
+        self.player_to_move: Player = None
+        self.winner: Player = None
+        self.event_queue: list[str] = []
 
     @property
     def game(self) -> game_pb2:
@@ -25,17 +29,17 @@ class ActiveGameScreen(ScreenStateInterface):
 
     @property
     def player(self):
-        return self.state.player
+        return self.game.players[self.state.player_id]
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONUP:
             pos = pygame.mouse.get_pos()
-            if not self.game.winner:
+            if not self.winner:
                 for btn in self.buttons.values():
                     if btn.click(pos):
                         self.state.network.send(btn.text)
         elif event.type == pygame.KEYDOWN:
-            if not self.game.winner:
+            if not self.winner:
                 if event.key == pygame.K_r:
                     self.state.network.send(self.buttons["dice_button"].text)
                     self.buttons["dice_button"].play_button_sound()
@@ -64,6 +68,10 @@ class ActiveGameScreen(ScreenStateInterface):
         except Exception:
             print("Couldn't get game, booting back to menu screen")
             pygame.event.post(pygame.event.Event(CHANGE_STATE, {"state": "menu_screen"}))
+        
+        self.event_queue.extend(self.state.game.events)
+        self.player_to_move = self.game.players[self.game.player_to_move_id]
+        self.winner = self.game.players.get(self.game.winner_id)
 
         # Debug
         keys = pygame.key.get_pressed()
@@ -72,7 +80,8 @@ class ActiveGameScreen(ScreenStateInterface):
         
         self.explosion_group.update()
 
-        for event in self.game.events:
+        while self.event_queue:
+            event = self.event_queue.pop()
             if event == "winner":
                 pygame.time.set_timer(WINNER, 5000)
                 pygame.mixer.music.stop()
@@ -80,15 +89,17 @@ class ActiveGameScreen(ScreenStateInterface):
                     self.state.play_sound(assets.sound_pacifistwin)
                 else:
                     self.state.play_sound(assets.sound_nukewin)
+            elif event == "dice_rolled":
+                self.state.play_sound(assets.sound_dice)
+            elif event == "snake":
+                self.state.play_sound(assets.sound_snake)
+            elif event == "ladder":
+                self.state.play_sound(assets.sound_ladder)
             elif event == "nuke_collected":
                 self.state.play_sound(assets.nuke_get_sounds[random.randint(0, len(assets.nuke_get_sounds) - 1)])
             elif event == "nuke_used":
                 self.state.play_sound(assets.sound_explosion)
                 self.explosion_group.add(Explosion())
-            elif event == "snake":
-                self.state.play_sound(assets.sound_snake)
-            elif event == "ladder":
-                self.state.play_sound(assets.sound_ladder)
             elif event == "music_change":
                 self.state.play_music(assets.music_but_nobody_came)
 
@@ -97,7 +108,7 @@ class ActiveGameScreen(ScreenStateInterface):
             self.started_music = True
 
         # Dice
-        if self.game.player_to_move == self.player:
+        if self.player_to_move == self.player:
             if self.game.deg_dice == 0:
                 self.buttons["dice_button"].image = assets.DICE[self.game.dice_pips]
             else:
@@ -131,10 +142,6 @@ class ActiveGameScreen(ScreenStateInterface):
         for btn in self.buttons.values():
             btn.draw()
 
-        # Nukes
-        for nuke in self.game.nukes:
-            self.window.blit(assets.NUCLEARBOMB, (125 + (nuke.x * 51), 522 - (nuke.y * 51)))
-
         # Movables
         for movable in self.game.movables:
             movable_draw_data = MOVABLE_DRAW_DATA[movable.sprite]
@@ -148,15 +155,22 @@ class ActiveGameScreen(ScreenStateInterface):
         for i, player in enumerate(self.game.players.values()):
             # nudge each of the player tokens to prevent overlapping
             offset_nudge = i * 5
+            player_color = ENUM_TO_COLOR_OBJECT_MAP[player.color].text
             if self.game.deg_pieces == 0:
-                self.window.blit(assets.PIECES[player.color.text], (BOARD_START_X + player.position.x * SQUARE_SIZE + offset_nudge + self.state.shake_amount, BOARD_START_Y - player.position.y * SQUARE_SIZE + offset_nudge))
+                self.window.blit(assets.PIECES[player_color], (BOARD_START_X + player.position.x * SQUARE_SIZE + offset_nudge + self.state.shake_amount, BOARD_START_Y - player.position.y * SQUARE_SIZE + offset_nudge))
             else:
-                self.window.blit(assets.PIECESDEG[player.color.text], (BOARD_START_X + player.position.x * SQUARE_SIZE + offset_nudge + self.state.shake_amount, BOARD_START_Y - player.position.y * SQUARE_SIZE + offset_nudge))
+                self.window.blit(assets.PIECESDEG[player_color], (BOARD_START_X + player.position.x * SQUARE_SIZE + offset_nudge + self.state.shake_amount, BOARD_START_Y - player.position.y * SQUARE_SIZE + offset_nudge))
 
+        player_to_move_color = ENUM_TO_COLOR_OBJECT_MAP[self.player_to_move.color].text
         if not self.game.deg_pieces:
-            self.window.blit(assets.BIGGERPIECES[self.game.player_to_move.color.text], (5, 5))
+            self.window.blit(assets.BIGGERPIECES[player_to_move_color], (5, 5))
         else:
-            self.window.blit(assets.BIGGERPIECESDEG[self.game.player_to_move.color.text], (5, 5))
+            self.window.blit(assets.BIGGERPIECESDEG[player_to_move_color], (5, 5))
+
+        # Nukes
+        for nuke in self.game.nukes:
+            self.window.blit(assets.NUCLEARBOMB, (125 + (nuke.position.x * 51), 522 - (nuke.position.y * 51)))
+
 
         # Nuke icon and counter
         if self.player.nukes > 0:
@@ -172,18 +186,19 @@ class ActiveGameScreen(ScreenStateInterface):
                 self.window.blit(text, (80, 615))
 
         # Winner text
-        if self.game.winner:
-            text = FONTS[90].render("ERROR", True, self.game.winner.color.color)
-            if self.game.winner == self.player:
+        if self.winner:
+            winner_name = ENUM_TO_COLOR_OBJECT_MAP[self.winner.color].text
+            winner_color = ENUM_TO_COLOR_OBJECT_MAP[self.winner.color].color
+            if self.winner == self.player:
                 if self.game.nukes_used == 0:
-                    text = FONTS[90].render("YOU WON! :D", True, self.game.winner.color.color, WHITE.color)
+                    text = FONTS[90].render("YOU WON! :D", True, winner_color, WHITE.color)
                 else:
-                    text = FONTS[90].render("You won...", True, self.game.winner.color.color, BLACK.color)
+                    text = FONTS[90].render("You won...", True, winner_color, BLACK.color)
             else:
                 if self.game.nukes_used == 0:
-                    text = FONTS[90].render(f"{self.game.winner} WON! :)", True, self.game.winner.color.color, WHITE.color)
+                    text = FONTS[90].render(f"{winner_name} WON! :)", True, winner_color, WHITE.color)
                 else:
-                    text = FONTS[90].render(f"{self.game.winner} won...", True, self.game.winner.color.color, BLACK.color)
+                    text = FONTS[90].render(f"{winner_name} won...", True, winner_color, BLACK.color)
             blit_centered_text(self.window, text, y_offset=-325)
 
         self.explosion_group.draw(self.window)

@@ -86,7 +86,7 @@ class Game:
             self.started = True
             if self.debug:
                 for player in self.players.values():
-                    player.nukes = 9999999999999999
+                    player.nukes = 2**31 - 1
                     player.position = Position(5, 5)
 
     # Gameplay
@@ -146,15 +146,15 @@ class Game:
                 del self.nukes[i]
 
     def check_player_interaction(self, player: Player):
-        if POSITION_TO_BOARD_NUMBER[player.position] == 100:
-            self.winner = player
-            self.events.append("winner")
         self.potentially_collect_nuke(player)
         for movable in self.movables:
             if player.position == movable.position:
                 player.position = self.calculate_destination_position(player.position, movable.vector)
                 self.events.append(movable.type)
         self.potentially_collect_nuke(player)
+        if POSITION_TO_BOARD_NUMBER[player.position] == 100:
+            self.winner = player
+            self.events.append("winner")
 
     def roll_dice(self, player: Player):
         if not self.player_to_move == player:
@@ -166,6 +166,7 @@ class Game:
         player.position = BOARD_NUMBER_TO_POSITION[destination_number]
         self.check_player_interaction(player)
         self.player_to_move = next(self.player_cycle)
+        self.events.append("dice_rolled")
 
     def nuke(self, player: Player):
         if player.nukes > 0:

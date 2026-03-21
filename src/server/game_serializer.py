@@ -24,7 +24,6 @@ def game_to_proto(game_obj) -> game_pb2.Game:
 
         proto_player.nukes = player_obj.nukes
         proto_player.ready = player_obj.ready
-        proto_player.board_number = player_obj.board_number
     # --- Player to move ---
     if game_obj.player_to_move:
         proto_game.player_to_move_id = game_obj.player_to_move.player_id
@@ -39,6 +38,7 @@ def game_to_proto(game_obj) -> game_pb2.Game:
 
     # --- Events ---
     proto_game.events.extend(game_obj.events)
+
     # --- Movables ---
     for m in game_obj.movables:
         proto_m = proto_game.movables.add()
@@ -69,7 +69,6 @@ def game_to_proto(game_obj) -> game_pb2.Game:
     proto_game.players_are_ready = game_obj.players_are_ready
 
     return proto_game
-
 
 # Optional helper to serialize directly to bytes
 def serialize_game(game_obj) -> bytes:
