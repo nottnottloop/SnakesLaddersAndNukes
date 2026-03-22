@@ -46,7 +46,6 @@ def threaded_client(conn, addr, player_id, game_id):
 
             if game_id in games:
                 game = games[game_id]
-                game.events = []
                 if not game.winner:
                     if data in (TEXT_TO_ENUM_COLOR_MAP.keys()):
                         game.set_player_color(player, data)

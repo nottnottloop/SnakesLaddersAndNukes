@@ -42,9 +42,10 @@ class Game:
         self.winner: Player = None
         self.dice_pips = random.randint(1, 6)
 
-        self.nukes_used = 0
+        self.event_counter = 1
+        self.events: list[(str, int)] = []
 
-        self.events: list[str] = []
+        self.nukes_used = 0
         self.movables: list[Movable] = []
         self.nukes: list[Position] = []
 
@@ -63,6 +64,11 @@ class Game:
     @property
     def players_are_ready(self) -> set[str]:
         return all(player.ready for player in self.players.values())
+
+    def add_event(self, event):
+        self.events.append((event, self.event_counter))
+        self.event_counter += 1
+        self.events = self.events[-10:]
 
     # Connection and lobby screen
     def add_new_player(self, player_id):
@@ -97,7 +103,7 @@ class Game:
         player.ready = True
         if self.players_are_ready:
             self.started = True
-            self.events.append("papers_please")
+            self.add_event("papers_please")
             self.generate_objects()
             if self.debug:
                 for player in self.players.values():
@@ -164,7 +170,7 @@ class Game:
         for i, nuke_position in enumerate(self.nukes):
             if player.position == nuke_position:
                 player.nukes += 1
-                self.events.append("nuke_collected")
+                self.add_event("nuke_collected")
                 del self.nukes[i]
 
     def check_player_interaction(self, player: Player):
@@ -172,11 +178,11 @@ class Game:
         for movable in self.movables:
             if player.position == movable.position:
                 player.position = self.calculate_destination_position(player.position, movable.vector)
-                self.events.append(movable.type)
+                self.add_event(movable.type)
         self.potentially_collect_nuke(player)
         if POSITION_TO_BOARD_NUMBER[player.position] == 100:
             self.winner = player
-            self.events.append("winner")
+            self.add_event("winner")
 
     def roll_dice(self, player: Player):
         if not self.player_to_move == player:
@@ -188,17 +194,17 @@ class Game:
         player.position = BOARD_NUMBER_TO_POSITION[destination_number]
         self.check_player_interaction(player)
         self.player_to_move = next(self.player_cycle)
-        self.events.append("dice_rolled")
+        self.add_event("dice_rolled")
 
     def nuke(self, player: Player):
         if player.nukes > 0:
             player.nukes -= 1
             self.nukes_used += 1
-            self.events.append("nuke_used")
+            self.add_event("nuke_used")
             if self.nukes_used == 7:
-                self.events.append("but_nobody_came")
+                self.add_event("but_nobody_came")
             elif self.nukes_used == 20:
-                self.events.append("genocide")
+                self.add_event("genocide")
             self.degrade()
             for player in self.players.values():
                 player.position = Position(random.randint(0, 9), random.randint(0, 8))
@@ -246,7 +252,7 @@ class Game:
     # Debug code
     def toggle_debug(self):
         self.debug = not self.debug
-        self.events.append("debug")
+        self.add_event("debug")
 
     def debug_move(self, player: Player, direction):
         if direction == "Up":
@@ -270,4 +276,4 @@ class Game:
         self.deg_snakes_and_ladders = 0
         self.deg_piece_shake = 0
         self.deg_music = 0
-        self.events.append("papers_please")
+        self.add_event("papers_please")

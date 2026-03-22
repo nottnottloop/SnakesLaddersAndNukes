@@ -4,6 +4,7 @@ from ..constants import *
 from .. import load_assets as assets
 from ..button import Button
 from ..utils import *
+from ...shared.game_pb2 import Player, Game
 
 class PlayerSelectScreen(ScreenStateInterface):
     def __init__(self, window: pygame.surface.Surface, state: ClientState):
@@ -26,11 +27,11 @@ class PlayerSelectScreen(ScreenStateInterface):
         self.client_event: str = "get"
     
     @property
-    def game(self) -> game_pb2:
+    def game(self) -> Game:
         return self.state.game
 
     @property
-    def player(self):
+    def player(self) -> Player:
         return self.game.players[self.state.player_id]
 
     def handle_event(self, event):
@@ -59,7 +60,7 @@ class PlayerSelectScreen(ScreenStateInterface):
         if self.connection_tried and not self.connection_failed:
             self.state.game.CopyFrom(self.state.network.send(self.client_event))
             self.client_event = "get"
-            self.state.server_events.extend(self.game.events)
+            self.state.get_new_events()
             for event in self.state.server_events:
                 if event == "debug":
                     self.state.server_events.remove("debug")
@@ -69,6 +70,8 @@ class PlayerSelectScreen(ScreenStateInterface):
                     else:
                         self.state.play_sound(assets.sound_debug_disable)
                         self.lobby_buttons["debug_toggle"].text_color = WHITE.color
+                else:
+                    self.state.jukebox(event)
         
             if not self.player.color:
                 for btn in self.color_buttons.values():

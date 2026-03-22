@@ -36,7 +36,10 @@ def game_to_proto(game_obj) -> game_pb2.Game:
     proto_game.nukes_used = game_obj.nukes_used
 
     # --- Events ---
-    proto_game.events.extend(game_obj.events)
+    for i, event in enumerate(game_obj.events):
+        proto_event = proto_game.events.add()
+        proto_event.event = event[0]
+        proto_event.id = event[1]
 
     # --- Movables ---
     for m in game_obj.movables:

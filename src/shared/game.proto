@@ -33,6 +33,11 @@ message Nuke {
   Position position = 1;
 }
 
+message Event {
+  string event = 1;
+  uint64 id = 2;
+}
+
 message Game {
   uint64 game_id = 1;
   bool debug = 2;
@@ -46,7 +51,7 @@ message Game {
 
   repeated Movable movables = 7;
   repeated Nuke nukes = 8;
-  repeated string events = 9;
+  repeated Event events = 9;
 
   uint64 nukes_used = 10;
 

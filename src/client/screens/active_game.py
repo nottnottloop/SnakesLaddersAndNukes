@@ -5,9 +5,7 @@ from ..button import Button
 from ..explosion import Explosion
 from ..utils import *
 from ..constants import *
-from ..networking import Network
-from ...shared import game_pb2
-from ...shared.game_pb2 import Player
+from ...shared.game_pb2 import Player, Game
 
 class ActiveGameScreen(ScreenStateInterface):
     def __init__(self, window: pygame.surface.Surface, state: ClientState):
@@ -23,11 +21,11 @@ class ActiveGameScreen(ScreenStateInterface):
         self.client_event: str = "get"
 
     @property
-    def game(self) -> game_pb2:
+    def game(self) -> Game:
         return self.state.game
 
     @property
-    def player(self):
+    def player(self) -> Player:
         return self.game.players.get(self.state.player_id)
 
     def handle_event(self, event):
@@ -72,7 +70,7 @@ class ActiveGameScreen(ScreenStateInterface):
             pygame.mixer.music.stop()
             pygame.event.post(pygame.event.Event(CHANGE_STATE, {"state": "menu_screen"}))
         
-        self.state.server_events.extend(self.game.events)
+        self.state.get_new_events()
         self.player_to_move = self.game.players.get(self.game.player_to_move_id)
         self.winner = self.game.players.get(self.game.winner_id)
 
@@ -83,8 +81,7 @@ class ActiveGameScreen(ScreenStateInterface):
         
         self.explosion_group.update()
 
-        while self.state.server_events:
-            event = self.state.server_events.pop()
+        for event in self.state.server_events:
             if event == "winner":
                 pygame.time.set_timer(WINNER, 5000)
                 pygame.mixer.music.stop()
@@ -103,12 +100,8 @@ class ActiveGameScreen(ScreenStateInterface):
             elif event == "nuke_used":
                 self.state.play_sound(assets.sound_explosion)
                 self.explosion_group.add(Explosion())
-            elif event == "papers_please":
-                self.state.play_music(assets.music_papers_please)
-            elif event == "but_nobody_came":
-                self.state.play_music(assets.music_but_nobody_came)
-            elif event == "genocide":
-                self.state.play_music(assets.music_genocide)
+            else:
+                self.state.jukebox(event)
 
         # Dice
         if self.player_to_move == self.player:
