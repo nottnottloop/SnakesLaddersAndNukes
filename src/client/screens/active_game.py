@@ -176,17 +176,18 @@ class ActiveGameScreen(ScreenStateInterface):
 
 
         # Nuke icon and counter
-        if self.player.nukes > 0:
-            self.window.blit(assets.NUKEACTIVE, (15, 635))
-        else:
-            self.window.blit(assets.NUKEINACTIVE, (15, 635))
-        if self.player.nukes > 0:
-            if not self.game.deg_nuke_text:
-                text = FONTS[120].render(str(self.player.nukes), True, RED.color)
-                self.window.blit(text, (80, 615))
+        if not self.game.game_mode == "Peaceful":
+            if self.player.nukes > 0:
+                self.window.blit(assets.NUKEACTIVE, (15, 635))
             else:
-                text = DEG_NUKE_FONT.render(str(self.player.nukes), True, RED.color)
-                self.window.blit(text, (80, 615))
+                self.window.blit(assets.NUKEINACTIVE, (15, 635))
+            if self.player.nukes > 0:
+                if not self.game.deg_nuke_text:
+                    text = FONTS[120].render(str(self.player.nukes), True, RED.color)
+                    self.window.blit(text, (80, 615))
+                else:
+                    text = DEG_NUKE_FONT.render(str(self.player.nukes), True, RED.color)
+                    self.window.blit(text, (80, 615))
 
         # Winner text
         if self.winner:

@@ -5,8 +5,6 @@ from .. import load_assets as assets
 from ..button import Button
 from ..utils import *
 
-READY_UP_BUTTON_COORDS = Position(225, 575)
-
 class PlayerSelectScreen(ScreenStateInterface):
     def __init__(self, window: pygame.surface.Surface, state: ClientState):
         self.window = window
@@ -20,7 +18,7 @@ class PlayerSelectScreen(ScreenStateInterface):
             "yellow": Button(window, state, 'Yellow', 175, 375, 200, 200, YELLOW.color, YELLOW.color, enabled=True),
         }
         self.lobby_buttons: dict[str, Button] = {
-            "ready_up_button": Button(window, state, 'Ready Up', READY_UP_BUTTON_COORDS.x, READY_UP_BUTTON_COORDS.y, 500, 150, BLACK.color, WHITE.color),
+            "ready_up_button": Button(window, state, 'Ready Up', 125, 575, 500, 150, BLACK.color, WHITE.color),
             "cycle_game_mode": Button(window, state, 'Normal', 225, 400, 300, 150, BLACK.color, WHITE.color, font_size=50, data="cycle_game_mode", border_width=3),
             "debug_toggle": Button(window, state, 'debug', 10, 10, 125, 25, WHITE.color, WHITE.color, enabled=True, sound=None),
         }
@@ -104,11 +102,8 @@ class PlayerSelectScreen(ScreenStateInterface):
 
                 if len(self.game.players) == 1:
                     self.buttons["ready_up_button"].text = "Play Single Player"
-                    self.buttons["ready_up_button"].x, self.buttons["ready_up_button"].y = READY_UP_BUTTON_COORDS
-                    self.buttons["ready_up_button"].x -= 100
                 else:
                     self.buttons["ready_up_button"].text = "Ready Up"
-                    self.buttons["ready_up_button"].x, self.buttons["ready_up_button"].y = READY_UP_BUTTON_COORDS
 
             if self.game.started:
                 pygame.event.post(pygame.event.Event(CHANGE_STATE, {"state": "active_game"}))

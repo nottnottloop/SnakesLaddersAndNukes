@@ -197,6 +197,8 @@ class Game:
             self.events.append("nuke_used")
             if self.nukes_used == 7:
                 self.events.append("but_nobody_came")
+            elif self.nukes_used == 20:
+                self.events.append("genocide")
             self.degrade()
             for player in self.players.values():
                 player.position = Position(random.randint(0, 9), random.randint(0, 8))
