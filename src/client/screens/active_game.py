@@ -186,16 +186,25 @@ class ActiveGameScreen(ScreenStateInterface):
         if self.winner:
             winner_name = ENUM_TO_COLOR_OBJECT_MAP[self.winner.color].text
             winner_color = ENUM_TO_COLOR_OBJECT_MAP[self.winner.color].color
+            winner_text = ""
+            winner_background_color = WHITESMOKE.color if self.game.nukes_used == 0 else BLACK.color
             if self.winner == self.player:
                 if self.game.nukes_used == 0:
-                    text = FONTS[90].render("YOU WON! :D", True, winner_color, WHITE.color)
+                    winner_text = "YOU WON! :D"
                 else:
-                    text = FONTS[90].render("You won...", True, winner_color, BLACK.color)
+                    winner_text = "You won..."
             else:
                 if self.game.nukes_used == 0:
-                    text = FONTS[90].render(f"{winner_name} WON! :)", True, winner_color, WHITE.color)
+                    winner_text = f"{winner_name} WON! :)"
                 else:
-                    text = FONTS[90].render(f"{winner_name} won...", True, winner_color, BLACK.color)
+                    winner_text = f"{winner_name} won..."
+
+            text = FONTS[90].render(winner_text, True, winner_color, winner_background_color)
             blit_centered_text(self.window, text, y_offset=-325)
+            text = FONTS[40].render(f"Moves taken: {self.game.moves_taken}", True, winner_color, winner_background_color)
+            blit_centered_text(self.window, text, y_offset=225)
+            if not self.game.game_mode == "Peaceful":
+                text = FONTS[40].render(f"Nukes detonated: {self.game.nukes_used}", True, winner_color, winner_background_color)
+                blit_centered_text(self.window, text, y_offset=265)
 
         self.explosion_group.draw(self.window)

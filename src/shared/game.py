@@ -45,6 +45,7 @@ class Game:
         self.event_counter = 1
         self.events: list[(str, int)] = []
 
+        self.moves_taken = 0
         self.nukes_used = 0
         self.movables: list[Movable] = []
         self.nukes: list[Position] = []
@@ -98,12 +99,19 @@ class Game:
 
     def cycle_game_mode(self):
         self.game_mode = GAME_MODES[(GAME_MODES.index(self.game_mode) + 1) % len(GAME_MODES)]
+    
+    def play_appropriate_music(self):
+        if self.game_mode == "Peaceful":
+            self.add_event("peaceful")
+        else:
+            self.add_event("papers_please")
+
 
     def set_player_ready(self, player: Player):
         player.ready = True
         if self.players_are_ready:
             self.started = True
-            self.add_event("papers_please")
+            self.play_appropriate_music()
             self.generate_objects()
             if self.debug:
                 for player in self.players.values():
@@ -195,6 +203,7 @@ class Game:
         self.check_player_interaction(player)
         self.player_to_move = next(self.player_cycle)
         self.add_event("dice_rolled")
+        self.moves_taken += 1
 
     def nuke(self, player: Player):
         if player.nukes > 0:
@@ -255,6 +264,7 @@ class Game:
         self.add_event("debug")
 
     def debug_move(self, player: Player, direction):
+        self.moves_taken += 1
         if direction == "Up":
             player.position = Position(player.position.x, player.position.y + 1)
         elif direction == "Down":
@@ -267,6 +277,8 @@ class Game:
             self.check_player_interaction(player)
 
     def reset_degredation(self):
+        self.play_appropriate_music()
+        self.moves_taken = 0
         self.nukes_used = 0
         self.deg_board = 0
         self.deg_color = 0
@@ -276,4 +288,3 @@ class Game:
         self.deg_snakes_and_ladders = 0
         self.deg_piece_shake = 0
         self.deg_music = 0
-        self.add_event("papers_please")

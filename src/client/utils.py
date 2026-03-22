@@ -60,9 +60,11 @@ class ClientState():
             self.play_music(assets.music_but_nobody_came)
         elif music == "genocide":
             self.play_music(assets.music_genocide)
+        elif music == "peaceful":
+            self.play_music(assets.music_peaceful)
 
-def blit_centered_text(window, text, y_offset=0):
-    window.blit(text, (WIDTH / 2 - text.get_width() / 2, HEIGHT / 2 - text.get_height() / 2 + y_offset))
+def blit_centered_text(window, text, y_offset=0, x_offset=0):
+    window.blit(text, (WIDTH / 2 - text.get_width() / 2 + x_offset, HEIGHT / 2 - text.get_height() / 2 + y_offset))
 
 def draw_bg(window, state: ClientState):
     if state.game == None or state.game.deg_color == 0:

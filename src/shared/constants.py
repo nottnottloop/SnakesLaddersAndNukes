@@ -15,6 +15,7 @@ BLUE = Color("Blue", (0, 0, 255))
 GREEN = Color("Green", (0, 255, 0))
 YELLOW = Color("Yellow", (252, 226, 5))
 NUKE_ORANGE = Color("Nuke Orange", (240, 205, 68))
+WHITESMOKE = Color("Whitesmoke", (250, 250, 250))
 
 TEXT_TO_ENUM_COLOR_MAP = {
     "Red": ColorEnum.RED,

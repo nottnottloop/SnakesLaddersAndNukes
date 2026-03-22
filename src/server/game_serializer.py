@@ -33,6 +33,7 @@ def game_to_proto(game_obj) -> game_pb2.Game:
         proto_game.winner_id = game_obj.winner.player_id
     proto_game.dice_pips = game_obj.dice_pips
 
+    proto_game.moves_taken = game_obj.moves_taken
     proto_game.nukes_used = game_obj.nukes_used
 
     # --- Events ---

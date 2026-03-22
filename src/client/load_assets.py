@@ -173,6 +173,7 @@ for i in range(12):
 music_papers_please = audio_dir / "papers_please.mp3"
 music_but_nobody_came = audio_dir / "but_nobody_came.mp3"
 music_genocide = audio_dir / "genocide.mp3"
+music_peaceful = audio_dir / "peaceful.mp3"
 
 nuke_get_sounds = []
 for i in range(1, 6):

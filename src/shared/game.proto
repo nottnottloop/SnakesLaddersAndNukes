@@ -53,6 +53,7 @@ message Game {
   repeated Nuke nukes = 8;
   repeated Event events = 9;
 
+  uint64 moves_taken = 51;
   uint64 nukes_used = 10;
 
   repeated ColorEnum taken_colors = 13;
