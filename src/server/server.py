@@ -52,6 +52,8 @@ def threaded_client(conn, addr, player_id, game_id):
                         game.set_player_color(player, data)
                     elif data in ["Ready Up", "Play Single Player"]:
                         game.set_player_ready(player)
+                    elif data == "cycle_game_mode":
+                        game.cycle_game_mode()
                     elif data == "roll":
                         game.roll_dice(player)
                     elif data == "NUKE":

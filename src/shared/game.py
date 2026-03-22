@@ -34,7 +34,7 @@ class Game:
         self.game_id: int = game_id
         self.debug = False
         self.started = False
-        self.game_type = "Normal"
+        self.game_mode = "Normal"
         
         self.players: dict[int, Player] = {}
         self.player_to_move: Player = None
@@ -90,6 +90,9 @@ class Game:
     def set_player_color(self, player: Player, color: str):
         player.color = TEXT_TO_ENUM_COLOR_MAP[color]
 
+    def cycle_game_mode(self):
+        self.game_mode = GAME_MODES[(GAME_MODES.index(self.game_mode) + 1) % len(GAME_MODES)]
+
     def set_player_ready(self, player: Player):
         player.ready = True
         if self.players_are_ready:
@@ -142,11 +145,11 @@ class Game:
                     self.movables.append(movable)
                     break
 
-        if self.game_type == "Normal":
+        if self.game_mode == "Normal":
             nukes_to_generate = (5, 15)
-        elif self.game_type == "Peaceful":
+        elif self.game_mode == "Peaceful":
             nukes_to_generate = (0, 0)
-        elif self.game_type == "WW3":
+        elif self.game_mode == "WW3":
             nukes_to_generate = (98, 98)
 
         for _ in range(random.randint(nukes_to_generate[0], nukes_to_generate[1])):

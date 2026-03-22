@@ -11,7 +11,7 @@ def game_to_proto(game_obj) -> game_pb2.Game:
     proto_game.game_id = game_obj.game_id
     proto_game.debug = game_obj.debug
     proto_game.started = game_obj.started
-    proto_game.game_type = game_obj.game_type
+    proto_game.game_mode = game_obj.game_mode
 
     # --- Players ---
     for i, player_obj in game_obj.players.items():

@@ -5,7 +5,7 @@ from .. import load_assets as assets
 from ..button import Button
 from ..utils import *
 
-READY_UP_BUTTON_COORDS = Position(25, 40)
+READY_UP_BUTTON_COORDS = Position(225, 575)
 
 class PlayerSelectScreen(ScreenStateInterface):
     def __init__(self, window: pygame.surface.Surface, state: ClientState):
@@ -20,8 +20,8 @@ class PlayerSelectScreen(ScreenStateInterface):
             "yellow": Button(window, state, 'Yellow', 175, 375, 200, 200, YELLOW.color, YELLOW.color, enabled=True),
         }
         self.lobby_buttons: dict[str, Button] = {
-            "ready_up_button": Button(window, state, 'Ready Up', READY_UP_BUTTON_COORDS.x, READY_UP_BUTTON_COORDS.y, 300, 150, BLACK.color, WHITE.color),
-            "cycle_game_type": Button(window, state, 'Normal', 225, 450, 300, 150, BLACK.color, WHITE.color, data="cycle_game_type"),
+            "ready_up_button": Button(window, state, 'Ready Up', READY_UP_BUTTON_COORDS.x, READY_UP_BUTTON_COORDS.y, 500, 150, BLACK.color, WHITE.color),
+            "cycle_game_mode": Button(window, state, 'Normal', 225, 400, 300, 150, BLACK.color, WHITE.color, font_size=50, data="cycle_game_mode", border_width=3),
             "debug_toggle": Button(window, state, 'debug', 10, 10, 125, 25, WHITE.color, WHITE.color, enabled=True, sound=None),
         }
         self.buttons: dict[str, Button] = self.color_buttons | self.lobby_buttons
@@ -80,7 +80,23 @@ class PlayerSelectScreen(ScreenStateInterface):
                         btn.enable()
             else:
                 [color_button.disable() for color_button in self.color_buttons.values()]
-                self.buttons["cycle_game_type"].enable()
+                self.buttons["cycle_game_mode"].enable()
+
+                if self.game.game_mode == "Normal":
+                    self.buttons["cycle_game_mode"].text_color = BLACK.color
+                    self.buttons["cycle_game_mode"].color = WHITE.color
+                    self.buttons["cycle_game_mode"].border_color = BLACK.color
+                elif self.game.game_mode == "Peaceful":
+                    self.buttons["cycle_game_mode"].text_color = WHITE.color
+                    self.buttons["cycle_game_mode"].color = GREEN.color
+                    self.buttons["cycle_game_mode"].border_color = BLACK.color
+                elif self.game.game_mode == "WW3":
+                    self.buttons["cycle_game_mode"].text_color = WHITE.color
+                    self.buttons["cycle_game_mode"].color = RED.color
+                    self.buttons["cycle_game_mode"].border_color = NUKE_ORANGE.color
+                self.buttons["cycle_game_mode"].text = self.game.game_mode
+
+
                 if self.player.ready:
                     self.buttons["ready_up_button"].disable()
                 else:
@@ -88,11 +104,10 @@ class PlayerSelectScreen(ScreenStateInterface):
 
                 if len(self.game.players) == 1:
                     self.buttons["ready_up_button"].text = "Play Single Player"
-                    self.buttons["ready_up_button"].width, self.buttons["ready_up_button"].height = 500, 150
                     self.buttons["ready_up_button"].x, self.buttons["ready_up_button"].y = READY_UP_BUTTON_COORDS
+                    self.buttons["ready_up_button"].x -= 100
                 else:
                     self.buttons["ready_up_button"].text = "Ready Up"
-                    self.buttons["ready_up_button"].width, self.buttons["ready_up_button"].height = 300, 150
                     self.buttons["ready_up_button"].x, self.buttons["ready_up_button"].y = READY_UP_BUTTON_COORDS
 
             if self.game.started:

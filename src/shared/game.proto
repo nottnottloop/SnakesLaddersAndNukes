@@ -37,7 +37,7 @@ message Game {
   uint64 game_id = 1;
   bool debug = 2;
   bool started = 3;
-  string game_type = 50;
+  string game_mode = 50;
 
   map<uint64, Player> players = 4;
   uint64 player_to_move_id = 5;

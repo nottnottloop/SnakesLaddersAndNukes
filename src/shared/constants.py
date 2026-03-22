@@ -3,6 +3,8 @@ from collections import namedtuple
 
 from .game_pb2 import ColorEnum
 
+GAME_MODES = ["Normal", "Peaceful", "WW3"]
+
 Color = namedtuple("Color", ["text", "color"])
 Position = namedtuple("Position", ["x", "y"])
 
