@@ -26,6 +26,8 @@ In March 2026 I picked the game back up and rewrote the code entirely to follow 
 
 If you want to enable debug mode in a lobby, click the 'Lobby' text in the top left of the player select screen. Then use arrow keys or WASD to move around or press J, K and L for fun
 
+Original description: Server-client game of Snakes and Ladders that slowly turns into a horror game and political commentary if the players let it
+
 <img align="right" width="380" height="380" src="https://github.com/nottnottloop/SnakesLaddersAndNukes/blob/main/screenshots/reallyworse.png">
 
 <img align="left" width="380" height="380" src="https://github.com/nottnottloop/SnakesLaddersAndNukes/blob/main/screenshots/slightlyworse.png">
